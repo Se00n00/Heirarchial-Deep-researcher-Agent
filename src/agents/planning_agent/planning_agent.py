@@ -7,12 +7,17 @@ from jinja2 import Environment, FileSystemLoader
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
 
+# config file -> super config
+'''
+2 types of config
+1. model specific config
+'''
 
 class PlanningAgent:
     def __init__(
             self,
-            model_config,
-            config,
+            model_config, #would not change 
+            config,         # would not change for now
             template_path,
             tools: list[Any]
         ):
