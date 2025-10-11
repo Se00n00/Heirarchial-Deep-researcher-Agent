@@ -1,4 +1,5 @@
 from pydantic import BaseModel
+from typing import TypedDict
 
 class Action(BaseModel):
     """
@@ -18,6 +19,10 @@ class Action(BaseModel):
     name:str
     arguments:dict
 
+class action(TypedDict):
+    name:str
+    arguments:dict
 
-# arguments type:
-# final answer
+class State(TypedDict):
+    message:str
+    action:action
