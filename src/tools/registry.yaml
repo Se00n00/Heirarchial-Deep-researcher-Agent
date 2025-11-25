@@ -1,0 +1,14 @@
+tools:
+  archive_searcher:
+    module: tools.archive_searcher.archive_searcher
+    function: archive_search
+    description: "Searches your local/archive corpus and returns relevant documents."
+    agents: ["research_agent", "planner"]
+
+  python_interpreter:
+    module: tools.python_interpreter.tools
+    function: run_python
+    description: "Executes short Python snippets in a sandboxed environment."
+    agents: ["coding_agent"]
+
+  # auto-generated tools will be appended here
