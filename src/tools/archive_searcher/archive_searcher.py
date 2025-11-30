@@ -1,4 +1,3 @@
-
 import aiohttp
 from waybackpy import WaybackMachineCDXServerAPI
 from typing import Optional
