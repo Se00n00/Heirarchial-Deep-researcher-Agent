@@ -1,48 +1,81 @@
-from src.state import State, AgentState
-from src.agents.planning_agent.planning_agent import PlanningAgent
-from src.agents.browser_use_agent.browser_agent import BrowserAgent
-from src.agents.deep_researcher_agent.deep_researcher import DeepResearcherAgent
+from src.core.agent import Agent
+from src.tools.registry import tools
 
-from langgraph.graph import StateGraph, START, END
+from langchain_core.messages import HumanMessage
 
-# NODE: Planning Agent, DeepResearcher Agent, Browser Agent
-Planner = PlanningAgent()
-Researcher = DeepResearcherAgent()
-Browser = BrowserAgent()
+DEEP_RESEARCHER_AGENT_TEMPLATE = "src/core/prompts/planning_agent.yaml"
+BROWSER_USE_AGENT_TEMPLATE = "src/core/prompts/browser_use_agent.yaml"
+PLANNING_AGENT_TEMPLATE = "src/core/prompts/planning_agent.yaml"
 
-def final_answer(state:State):
-    print(state["action"]["arguments"])
+basic_managed_agent = {}
 
-def planning_conditional_edge(state:State):
-    match(state['action']['name']):
-        case 'planning_agent':
-            return 'planning_agent'
-        case 'final_answer':
-            return 'final_answer'
-        case _:
-            return 'final_answer'
-
-agent = (
-    StateGraph(State)
-    .add_node("planning_agent",Planner)
-    .add_node("researcher_agent",Researcher)
-    .add_node("browser_use_agent", Browser)
-    .add_edge(START, "planning_agent")
-    .add_conditional_edges(
-        "planning_agent",
-        planning_conditional_edge,
-        ["final_answer"]
-        )
-    .compile()
+planner = Agent(
+    model = "openai/gpt-oss-20b",
+    agent = "planning_agent",
+    system_instructions_path = PLANNING_AGENT_TEMPLATE,
+    tools = tools,
+    managed_agents = basic_managed_agent
 )
 
-# Invoking the graph
-user_query = "question !!!"
-agent.invoke(
-    {"action":
-        {
-            "name":"plannig_agent",
-            "arguments":{"task":user_query}
-        }
+browser_use = Agent(
+    model = "openai/gpt-oss-20b",
+    agent = "browser_use_agent",
+    system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
+    tools = tools,
+    managed_agents = basic_managed_agent
+)
+
+deep_researcher = Agent(
+    model = "openai/gpt-oss-20b",
+    agent = "deep_researcher_agent",
+    system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
+    tools = tools,
+    managed_agents = basic_managed_agent
+)
+
+browser_use_description = {
+    "name": "browser_use_agent",
+    "description": "",
+    "function" : browser_use.forward()
+}
+
+deep_researcher_description = {
+    "name": "planning_agent",
+    "description": "",
+    "function" : deep_researcher.forward()
+}
+
+planner_description = {
+    "name": "planning_agent",
+    "description": "",
+    "function" : planner.forward()
+}
+planner.add_managed_agents(
+    {
+        "browser_user": browser_use_description,
+        "deep_researcher": deep_researcher_description
     }
 )
+deep_researcher.add_managed_agents(
+    {
+        "browser_user": browser_use_description
+    }
+)
+browser_use.add_managed_agents(
+    {
+        "deep_researcher": deep_researcher_description
+    }
+)
+
+if __name__ == "__main__":
+    
+    resume = True
+
+    while(resume):
+        input_message = input("Enter Any Task to do ")
+        message = HumanMessage(content = input_message)
+        planner.forward(message)
+
+        resume_ = input("Continue_conersation: ------------------ [T / F]")
+        if resume_ == 'F':
+            resume = False
