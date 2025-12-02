@@ -36,19 +36,19 @@ deep_researcher = Agent(
 browser_use_description = {
     "name": "browser_use_agent",
     "description": "",
-    "function" : browser_use.forward()
+    "function" : browser_use.forward # removing brackets to make it callable
 }
 
 deep_researcher_description = {
-    "name": "planning_agent",
+    "name": "deep_researcher_agent",
     "description": "",
-    "function" : deep_researcher.forward()
+    "function" : deep_researcher.forward # removing brackets to make it callable
 }
 
 planner_description = {
     "name": "planning_agent",
     "description": "",
-    "function" : planner.forward()
+    "function" : planner.forward  # removing brackets to make it callable
 }
 planner.add_managed_agents(
     {

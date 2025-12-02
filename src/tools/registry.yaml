@@ -4,11 +4,31 @@ tools:
     function: archive_search
     description: "Searches your local/archive corpus and returns relevant documents."
     agents: ["research_agent", "planner"]
+    parameters:
+      properties:
+        query: "Search query string to look up in the archive"
+    output_type: "documents"
 
   python_interpreter:
     module: tools.python_interpreter.tools
     function: run_python
     description: "Executes short Python snippets in a sandboxed environment."
     agents: ["coding_agent"]
+    parameters:
+      properties:
+        code: "Python code string to execute"
+    output_type: "execution_result"
+
+  # later you can add more, e.g. web, image_gen, etc.
+  # web:
+  #   module: tools.WebBrowser.web_browser
+  #   function: some_function_name
+  #   description: "Search the web or open a URL"
+  #   agents: ["browser_use_agent", "planner"]
+  #   parameters:
+  #     properties:
+  #       query: "Search query string"
+  #       url: "Optional URL to open"
+  #   output_type: "html"
 
   # auto-generated tools will be appended here

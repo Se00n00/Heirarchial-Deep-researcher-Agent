@@ -1,7 +1,7 @@
 import importlib
 import yaml
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 
 from langchain_core.tools import Tool
 
@@ -157,3 +157,48 @@ class ToolRegistry:
             func=func,
             description=description,
         )
+
+    def build_structured_tools() -> Dict[str, Dict[str, Any]]:
+        """
+        Returns tools in the format expected by the hierarchical Agent:
+
+        {
+        "<tool_name>": {
+            "definition": {  # for prompts
+            "name": str,
+            "description": str,
+            "parameters": {"properties": {...}},
+            "output_type": str,
+            },
+            "function": callable,  # actual Python function to execute
+        },
+        ...
+        }
+        """
+        registry = ToolRegistry()
+        structured: Dict[str, Dict[str, Any]] = {}
+
+        for name, meta in registry._tools_meta.items():
+            # load the underlying Python function
+            module_path = meta["module"]
+            func_name = meta["function"]
+
+            module = importlib.import_module(module_path)
+            func = getattr(module, func_name)
+
+            # build the definition block with sensible defaults
+            definition = {
+                "name": name,
+                "description": meta.get("description", ""),
+                "parameters": meta.get("parameters", {"properties": {}}),
+                "output_type": meta.get("output_type", "text"),
+            }
+
+            structured[name] = {
+                "definition": definition,
+                "function": func,
+            }
+
+        return structured
+    # This is what agent.py will import
+    tools: Dict[str, Dict[str, Any]] = build_structured_tools()
