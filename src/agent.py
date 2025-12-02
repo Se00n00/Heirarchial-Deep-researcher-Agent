@@ -1,5 +1,6 @@
 from src.core.agent import Agent
-from src.tools.registry import tools
+from src.tools.registry import tools # TODO: Import all tools
+
 
 from langchain_core.messages import HumanMessage
 
@@ -8,6 +9,7 @@ BROWSER_USE_AGENT_TEMPLATE = "src/core/prompts/browser_use_agent.yaml"
 PLANNING_AGENT_TEMPLATE = "src/core/prompts/planning_agent.yaml"
 
 basic_managed_agent = {}
+# TODO : Define tools here
 
 planner = Agent(
     model = "openai/gpt-oss-20b",
@@ -67,6 +69,7 @@ browser_use.add_managed_agents(
     }
 )
 
+
 if __name__ == "__main__":
     
     resume = True
@@ -74,8 +77,8 @@ if __name__ == "__main__":
     while(resume):
         input_message = input("Enter Any Task to do ")
         message = HumanMessage(content = input_message)
-        planner.forward(message)
+        print(f"Output : {planner.forward(message)}")
 
-        resume_ = input("Continue_conersation: ------------------ [T / F]")
+        resume_ = input("Continue_conersation: ------------------------------------------- [T / F]")
         if resume_ == 'F':
             resume = False

@@ -54,8 +54,8 @@ system_prompt: |-
 
   Action:
   {
-      "name": "python_interpreter",
-      "arguments": {"code": "5 + 3 + 1294.678"}
+    "name": "python_interpreter",
+    "arguments": {"code": "5 + 3 + 1294.678"}
   }
   Observation: 1302.678
 
@@ -70,16 +70,16 @@ system_prompt: |-
 
   Action:
   {
-      "name": "search",
-      "arguments": "Population Guangzhou"
+    "name": "search",
+    "arguments": "Population Guangzhou"
   }
   Observation: ['Guangzhou has a population of 15 million inhabitants as of 2021.']
 
 
   Action:
   {
-      "name": "search",
-      "arguments": "Population Shanghai"
+    "name": "search",
+    "arguments": "Population Shanghai"
   }
   Observation: '26 million (2019)'
 
