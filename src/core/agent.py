@@ -43,13 +43,14 @@ class Agent:
     self.tools.update(tool_list)
   
 
-  def forward(self, message:HumanMessage = None, task_from_manager = None):
+  def forward(self, message = None, task_from_manager = None):
+
 
     prompt_variables = {
       "tools": self.tools or {},
       "managed_agents": self.managed_agents,
       "name": self.agent,
-      "task": message.content or task_from_manager,
+      "task": message or task_from_manager,
       "feedbacks": self.feedbacks or []
     }
 
@@ -63,7 +64,10 @@ class Agent:
     try:
       res = self.model.invoke(self.contents)
     except Exception as e:
-      res = {"name":"final_answer","arguments":{"error":e}}
+      res = Output(
+        name = "final_answer",
+        arguments = {"error":e}
+      )
 
 
     if res.name != "final_answer":

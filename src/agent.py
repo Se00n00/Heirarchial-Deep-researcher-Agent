@@ -81,8 +81,7 @@ if __name__ == "__main__":
     resume = True
 
     while(resume):
-        input_message = input("Enter Any Task to do: \t")
-        message = HumanMessage(content = input_message)
+        message = input("Enter Any Task to do:\t")
         print(f"Output : {planner.forward(message)}")
 
         resume_ = input("Continue_conersation: ------------------------------------------- [T / F]: \t")
