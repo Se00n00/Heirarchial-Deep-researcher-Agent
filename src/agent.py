@@ -1,15 +1,21 @@
-from src.core.agent import Agent
-from src.tools.registry import tools # TODO: Import all tools
+import sys
+import os
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
+from core.agent import Agent
+# from src.tools.registry import tools
+
+tools = {}
 
 
 from langchain_core.messages import HumanMessage
 
-DEEP_RESEARCHER_AGENT_TEMPLATE = "src/core/prompts/planning_agent.yaml"
-BROWSER_USE_AGENT_TEMPLATE = "src/core/prompts/browser_use_agent.yaml"
-PLANNING_AGENT_TEMPLATE = "src/core/prompts/planning_agent.yaml"
+DEEP_RESEARCHER_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
+BROWSER_USE_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/browser_use_agent.yaml"
+PLANNING_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
 
 basic_managed_agent = {}
-# TODO : Define tools here
 
 planner = Agent(
     model = "openai/gpt-oss-20b",
@@ -37,35 +43,35 @@ deep_researcher = Agent(
 
 browser_use_description = {
     "name": "browser_use_agent",
-    "description": "",
-    "function" : browser_use.forward # removing brackets to make it callable
+    "description": "Automates web interactions for searching, extracting, and collecting real-time data to support research and information needs.",
+    "function" : browser_use.forward
 }
 
 deep_researcher_description = {
     "name": "deep_researcher_agent",
-    "description": "",
-    "function" : deep_researcher.forward # removing brackets to make it callable
+    "description": "Gathers and synthesizes high-quality information on topics, automatically producing research reports or knowledge summaries.",
+    "function" : deep_researcher.forward
 }
 
 planner_description = {
     "name": "planning_agent",
-    "description": "",
-    "function" : planner.forward  # removing brackets to make it callable
+    "description": "Orchestrates overall task workflows by decomposing them into sub-tasks and coordinating lower-level agents for efficient completion.",
+    "function" : planner.forward
 }
 planner.add_managed_agents(
     {
-        "browser_user": browser_use_description,
-        "deep_researcher": deep_researcher_description
+        "browser_use_agent": browser_use_description,
+        "deep_researcher_agent": deep_researcher_description
     }
 )
 deep_researcher.add_managed_agents(
     {
-        "browser_user": browser_use_description
+        "browser_use_agent": browser_use_description
     }
 )
 browser_use.add_managed_agents(
     {
-        "deep_researcher": deep_researcher_description
+        "deep_researcher_agent": deep_researcher_description
     }
 )
 
@@ -75,10 +81,10 @@ if __name__ == "__main__":
     resume = True
 
     while(resume):
-        input_message = input("Enter Any Task to do ")
+        input_message = input("Enter Any Task to do: \t")
         message = HumanMessage(content = input_message)
         print(f"Output : {planner.forward(message)}")
 
-        resume_ = input("Continue_conersation: ------------------------------------------- [T / F]")
+        resume_ = input("Continue_conersation: ------------------------------------------- [T / F]: \t")
         if resume_ == 'F':
             resume = False

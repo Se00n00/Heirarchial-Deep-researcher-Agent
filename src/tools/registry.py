@@ -200,5 +200,5 @@ class ToolRegistry:
             }
 
         return structured
-    # This is what agent.py will import
+    
     tools: Dict[str, Dict[str, Any]] = build_structured_tools()

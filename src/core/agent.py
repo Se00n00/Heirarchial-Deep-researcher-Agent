@@ -1,8 +1,6 @@
 from .state import Output
-from src.tools.registry import tools
-from src.agent import agents
 
-from langchain.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from jinja2 import Template
@@ -16,10 +14,10 @@ BASE_URL = os.environ['GROQ_BASE_URL']
 class Agent:
   def __init__(self, model:str, agent:str, system_instructions_path:str, tools, managed_agents):
     self.model = ChatOpenAI(
-        model = model,
-        api_key = API_KEY,
-        base_url = BASE_URL,
-        streaming = True,
+      model = model,
+      api_key = API_KEY,
+      base_url = BASE_URL,
+      streaming = True,
     ).with_structured_output(Output)
 
     self.agent = agent
@@ -41,39 +39,41 @@ class Agent:
   def add_managed_agents(self, agent_list):
     self.managed_agents = agent_list
   
-  def add_managed_agents(self, tool_list):
+  def add_tools(self, tool_list):
     self.tools.update(tool_list)
   
 
   def forward(self, message:HumanMessage = None):
 
     prompt_variables = {
-      "tools": self.tools['definitions'],
-      "managed_agents": self.managed_agents['definitions'],
+      "tools": self.tools or {},
+      "managed_agents": self.managed_agents,
       "name": self.agent,
       "task": message.content,
       "feedbacks": self.feedbacks or []
     }
 
     # Update Context With Feedback ------------ >
-    if self.contents == None:
-      system_content = self.render_yaml_template(self.system_instructions_template, prompt_variables)
-      self.contents = [
-        SystemMessage(content=system_content)
-      ]
+    system_content = self.render_yaml_template(self.system_instructions_template_path, prompt_variables)
+    self.contents = [
+      SystemMessage(content=system_content)
+    ]
 
     # Call model with current contents
-    res = self.model.invoke(self.contents)
+    try:
+      res = self.model.invoke(self.contents)
+    except Exception as e:
+      res = {"name":"final_answer","arguments":{"error":e}}
 
 
     if res.name != "final_answer":
       
       if res.name in [tool['name'] for tool in self.tools.values()]:
-        result = tools[res.name](**res.arguments)
+        result = self.tools[res.name](**res.arguments)
 
 
-      elif res.name in [agent['name'] for agent in self.managed_agents.values()]:
-        result = agents[res.name](**res.arguments)
+      elif res.name in self.managed_agents:
+        result = self.managed_agents[res.name]['function'](**res.arguments)
 
       else:
         result = "tool / agent not found"
