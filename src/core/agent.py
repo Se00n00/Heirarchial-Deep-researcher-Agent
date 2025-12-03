@@ -43,13 +43,13 @@ class Agent:
     self.tools.update(tool_list)
   
 
-  def forward(self, message:HumanMessage = None):
+  def forward(self, message:HumanMessage = None, task_from_manager = None):
 
     prompt_variables = {
       "tools": self.tools or {},
       "managed_agents": self.managed_agents,
       "name": self.agent,
-      "task": message.content,
+      "task": message.content or task_from_manager,
       "feedbacks": self.feedbacks or []
     }
 
