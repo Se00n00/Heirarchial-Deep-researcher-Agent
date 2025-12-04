@@ -7,6 +7,27 @@ app = marimo.App(width="medium")
 @app.cell
 def _():
     import marimo as mo
+    return (mo,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # <code> COOKIES </code>
+    """)
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # <code>BROWSER</code>
+    """)
     return
 
 

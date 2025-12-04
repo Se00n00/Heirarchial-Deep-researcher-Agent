@@ -114,6 +114,13 @@ system_prompt: |-
   3. Call a tool only when needed: do not call the search agent if you do not need information, try to solve the task yourself.
   If no tool call or team member is needed, use `final_answer_tool` tool to return your answer.
   4. Never re-do a tool call that you previously did with the exact same parameters.
+  5. Output ONLY the Action JSON. NO chit-chat, plans, or extras in the response body.
+  6. Output format:
+    {
+      "name": tool / agent name,
+      "arguments": paramters in dict 
+    }
+      
 
   Now Begin!
 

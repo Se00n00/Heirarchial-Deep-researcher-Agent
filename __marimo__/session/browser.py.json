@@ -18,21 +18,46 @@
       "console": []
     },
     {
-      "id": "OxZn",
-      "code_hash": "249acbd39e30efe512f9c4ae0b11b556",
+      "id": "ZdAh",
+      "code_hash": "445b732ec09ce3732ced62862f20d3bd",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/plain": ""
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"cookies\"><code> COOKIES </code></h1></span>"
           }
         }
       ],
       "console": []
     },
     {
-      "id": "KJMX",
+      "id": "SPZw",
       "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "rDLy",
+      "code_hash": "5f45115a33e22ebaac770f91412d495c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"browser\"><code>BROWSER</code></h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "249acbd39e30efe512f9c4ae0b11b556",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "cfa8964988be8de98bfc0452175a0694",
       "outputs": [],
       "console": []
     }

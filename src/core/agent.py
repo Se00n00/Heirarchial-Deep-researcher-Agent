@@ -2,6 +2,7 @@ from .state import Output
 
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
+from langchain.agents import create_agent
 from dotenv import load_dotenv
 from jinja2 import Template
 import os
@@ -25,7 +26,7 @@ class Agent:
     self.system_instructions_template_path = system_instructions_path
     self.tools = tools or {}
     self.managed_agents = managed_agents or {}
-    self.feedbacks = None
+    self.feedbacks = []
     self.execution_iteration = 0
     
 
@@ -51,23 +52,25 @@ class Agent:
       "managed_agents": self.managed_agents,
       "name": self.agent,
       "task": message or task_from_manager,
-      "feedbacks": self.feedbacks or []
+      "feedbacks": self.feedbacks
     }
 
     # Update Context With Feedback ------------ >
     system_content = self.render_yaml_template(self.system_instructions_template_path, prompt_variables)
-    self.contents = [
-      SystemMessage(content=system_content)
-    ]
+    
 
     # Call model with current contents
     try:
-      res = self.model.invoke(self.contents)
+      res = self.model.invoke(
+        [SystemMessage(system_content),HumanMessage(content=f"Task: {message or task_from_manager}")]
+      )
     except Exception as e:
       res = Output(
         name = "final_answer",
         arguments = {"error":e}
       )
+
+    print(res)
 
 
     if res.name != "final_answer":
