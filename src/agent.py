@@ -4,82 +4,7 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_root)
 
 from core.agent import Agent
-# from src.tools.registry import tools
-
-tools = {
-    "python": {
-        "name": "python",
-        "description": "Executes Python code and returns the output.",
-        "parameters": {
-            "properties": {
-                "code": "Python code string to execute"
-            }
-        },
-        "output_type": "execution_result"
-    },
-
-    "deep_analyzer_tool": {
-        "name": "deep_analyzer_tool",
-        "description": "A Groq-powered tool that performs systematic, step-by-step task analysis and reasoning, optionally using an attached file or URL for context.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "task": {
-                    "type": "string",
-                    "nullable": True,
-                    "description": "The task to be analyzed. If omitted, the tool will caption or analyze the provided source."
-                },
-                "source": {
-                    "type": "string",
-                    "nullable": True,
-                    "description": "Local file path or URL to analyze. Can handle PDF, text files, or external URIs."
-                }
-            },
-            "required": []
-        },
-        "output_type": "any"
-    },
-
-    "python_interpreter_tool": {
-        "name": "python_interpreter_tool",
-        "description": "Evaluates Python code safely in a restricted interpreter environment.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string",
-                    "description": "Python code to execute. Only imports from the allowed builtin list are permitted."
-                }
-            },
-            "required": ["code"]
-        },
-        "output_type": "any"
-    },
-
-    "web_search": {
-        "name": "web_search",
-        "description": "Performs a Google-style web search and returns textual search results.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "The search query."
-                    },
-                    "filter_year": {
-                        "type": "string",
-                        "nullable": true,
-                        "description": "Optional. Restrict results to a specific year."
-                    }
-                },
-                "required": ["query"]
-            },
-        "output_type": "string"
-    }
-}
-
-
-
+from src.tools.tools_registry import tools
 
 from langchain_core.messages import HumanMessage
 
@@ -93,7 +18,7 @@ planner = Agent(
     model = "openai/gpt-oss-20b",
     agent = "planning_agent",
     system_instructions_path = PLANNING_AGENT_TEMPLATE,
-    tools = tools,
+    tools = {},
     managed_agents = basic_managed_agent
 )
 
@@ -101,7 +26,7 @@ browser_use = Agent(
     model = "openai/gpt-oss-20b",
     agent = "browser_use_agent",
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
-    tools = tools,
+    tools = {k: tools[k] for k in ["",""]},
     managed_agents = basic_managed_agent
 )
 
@@ -109,7 +34,7 @@ deep_researcher = Agent(
     model = "openai/gpt-oss-20b",
     agent = "deep_researcher_agent",
     system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
-    tools = tools,
+    tools = {k: tools[k] for k in ["",""]},
     managed_agents = basic_managed_agent
 )
 

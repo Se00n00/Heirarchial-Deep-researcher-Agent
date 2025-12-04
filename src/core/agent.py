@@ -76,7 +76,7 @@ class Agent:
     if res.name != "final_answer":
       
       if res.name in [tool['name'] for tool in self.tools.values()]:
-        result = self.tools[res.name](**res.arguments)
+        result = self.tools[res.name]['function'](**res.arguments)
 
 
       elif res.name in self.managed_agents:
