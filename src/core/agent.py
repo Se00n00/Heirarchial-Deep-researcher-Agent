@@ -1,12 +1,13 @@
 from .state import Output
 
+from openai import OpenAI
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from dotenv import load_dotenv
 from jinja2 import Template
 import os
-
+import json
 
 load_dotenv()
 API_KEY = os.environ['GROQ_API_KEY']
@@ -14,13 +15,10 @@ BASE_URL = os.environ['GROQ_BASE_URL']
 
 class Agent:
   def __init__(self, model:str, agent:str, system_instructions_path:str, tools, managed_agents):
-    self.model = ChatOpenAI(
-      model = model,
-      api_key = API_KEY,
-      base_url = BASE_URL,
-      streaming = True,
-    ).with_structured_output(Output)
-
+    self.model = OpenAI(
+        api_key=os.environ["GROQ_API_KEY"],
+        base_url=os.environ["GROQ_BASE_URL"],
+    )
     self.agent = agent
     self.contents = None
     self.system_instructions_template_path = system_instructions_path
@@ -78,11 +76,20 @@ class Agent:
     
 
     # Call model with current contents
-    print("PROMPT :\n\n",system_content)
     try:
-      res = self.model.invoke(
-        [SystemMessage(system_content),HumanMessage(content=f"Task: {message or task_from_manager}")]
+      response = self.model.responses.create(
+        input=system_content,
+        model="openai/gpt-oss-20b",
       )
+      raw = response.output_text
+      if isinstance(raw, str):
+          raw = json.loads(raw)
+
+      res = Output.model_validate(raw)
+
+      # res = self.model.invoke(
+      #   [SystemMessage(system_content),HumanMessage(content=f"Task: {message or task_from_manager}")]
+      # )
     except Exception as e:
       res = Output(
         name = "final_answer",
