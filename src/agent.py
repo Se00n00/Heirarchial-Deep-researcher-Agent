@@ -26,7 +26,7 @@ browser_use = Agent(
     model = "openai/gpt-oss-20b",
     agent = "browser_use_agent",
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
-    tools = {k: tools[k] for k in ["",""]},
+    tools = {k: tools[k] for k in ["python_interpreter_tool"]},
     managed_agents = basic_managed_agent
 )
 
@@ -34,7 +34,7 @@ deep_researcher = Agent(
     model = "openai/gpt-oss-20b",
     agent = "deep_researcher_agent",
     system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
-    tools = {k: tools[k] for k in ["",""]},
+    tools = {k: tools[k] for k in ["python_interpreter_tool","archive_searcher_tool"]},
     managed_agents = basic_managed_agent
 )
 

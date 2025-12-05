@@ -1,2 +1,4 @@
 langchain_openai
 pydantic
+aiohttp
+waybackpy
