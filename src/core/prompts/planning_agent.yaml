@@ -139,6 +139,11 @@ task_instruction: |-
   Here is the task:
   {{task}}
 
+  Observations / records of till now:
+  {% for fb in feedbacks.values() %}
+    Iteration: {{ fb.iteration }}: {{ fb.name }} : {{ fb.final_answer }}
+  {% endfor %}
+
 user_prompt: |-
   You should think step by step and provide a detailed plan for the task.
 

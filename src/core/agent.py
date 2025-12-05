@@ -26,7 +26,7 @@ class Agent:
     self.system_instructions_template_path = system_instructions_path
     self.tools = tools or {}
     self.managed_agents = managed_agents or {}
-    self.feedbacks = []
+    self.feedbacks = {}
     self.execution_iteration = 0
     
 
@@ -51,6 +51,18 @@ class Agent:
     #   "name": "GIVEN TASK : ",
     #   "final_answer": message or task_from_manager
     # })
+
+    if self.execution_iteration == 0:
+
+      self.feedbacks.update({
+        self.execution_iteration :
+        {
+          "iteration": self.execution_iteration,
+          "name": "Given Task",
+          "final_answer": message or task_from_manager
+        }
+      })
+      self.execution_iteration += 1
 
 
     prompt_variables = {
@@ -91,10 +103,13 @@ class Agent:
       else:
         result = "tool / agent not found"
 
-      self.feedbacks.append({
-        "iteration": self.execution_iteration,
-        "name": res.name,
-        "final_answer": result
+      self.feedbacks.update({
+        self.execution_iteration :
+        {
+          "iteration": self.execution_iteration,
+          "name": res.name,
+          "final_answer": result
+        }
       })
 
       self.execution_iteration += 1
