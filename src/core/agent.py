@@ -46,6 +46,12 @@ class Agent:
 
   def forward(self, message = None, task_from_manager = None):
 
+    # self.feedbacks.append({
+    #   "iteration": self.execution_iteration,
+    #   "name": "GIVEN TASK : ",
+    #   "final_answer": message or task_from_manager
+    # })
+
 
     prompt_variables = {
       "tools": self.tools or {},
