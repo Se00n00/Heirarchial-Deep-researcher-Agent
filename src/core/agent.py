@@ -78,6 +78,7 @@ class Agent:
     
 
     # Call model with current contents
+    print("PROMPT :\n\n",system_content)
     try:
       res = self.model.invoke(
         [SystemMessage(system_content),HumanMessage(content=f"Task: {message or task_from_manager}")]
@@ -88,7 +89,7 @@ class Agent:
         arguments = {"error":e}
       )
 
-    print(res)
+    print("EXECUTION :\n\n",res)
 
 
     if res.name != "final_answer":
