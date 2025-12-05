@@ -13,7 +13,6 @@ import pathvalidate
 import requests
 from serpapi import GoogleSearch
 
-from smolagents import Tool
 
 from .cookies import COOKIES
 from .mdconvert import FileConversionException, MarkdownConverter, UnsupportedFormatException
@@ -27,6 +26,7 @@ class SimpleTextBrowser:
         start_page: str | None = None,
         viewport_size: int | None = 1024 * 8,
         downloads_folder: str | None | None = None,
+        serpapi_key: str | None | None = None,
         request_kwargs: dict[str, Any] | None | None = None,
     ):
         self.start_page: str = start_page if start_page else "about:blank"
@@ -37,6 +37,7 @@ class SimpleTextBrowser:
         self.viewport_current_page = 0
         self.viewport_pages: list[tuple[int, int]] = list()
         self.set_address(self.start_page)
+        self.serpapi_key = serpapi_key
         self.request_kwargs = request_kwargs
         self.request_kwargs["cookies"] = COOKIES
         self._mdconvert = MarkdownConverter()
@@ -368,7 +369,7 @@ class SimpleTextBrowser:
         return (header, self.viewport)
 
 
-class SearchInformationTool(Tool):
+class SearchInformationTool:
     name = "web_search"
     description = "Perform a web search query (think a google search) and returns the search results."
     inputs = {"query": {"type": "string", "description": "The web search query to perform."}}
@@ -389,7 +390,7 @@ class SearchInformationTool(Tool):
         return header.strip() + "\n=======================\n" + content
 
 
-class VisitTool(Tool):
+class VisitTool:
     name = "visit_page"
     description = "Visit a webpage at a given URL and return its text. Given a url to a YouTube video, this returns the transcript."
     inputs = {"url": {"type": "string", "description": "The relative or absolute url of the webpage to visit."}}
@@ -405,7 +406,7 @@ class VisitTool(Tool):
         return header.strip() + "\n=======================\n" + content
 
 
-class DownloadTool(Tool):
+class DownloadTool:
     name = "download_file"
     description = """
 Download a file at a given URL. The file should be of this format: [".xlsx", ".pptx", ".wav", ".mp3", ".m4a", ".png", ".docx"]
@@ -440,7 +441,7 @@ DO NOT use this tool for .pdf or .txt or .htm files: for these types of files us
         return f"File was downloaded and saved under path {new_path}."
 
 
-class ArchiveSearchTool(Tool):
+class ArchiveSearchTool:
     name = "find_archived_url"
     description = "Given a url, searches the Wayback Machine and returns the archived version of the url that's closest in time to the desired date."
     inputs = {
@@ -483,7 +484,7 @@ class ArchiveSearchTool(Tool):
         )
 
 
-class PageUpTool(Tool):
+class PageUpTool:
     name = "page_up"
     description = "Scroll the viewport UP one page-length in the current webpage and return the new viewport content."
     inputs = {}
@@ -499,7 +500,7 @@ class PageUpTool(Tool):
         return header.strip() + "\n=======================\n" + content
 
 
-class PageDownTool(Tool):
+class PageDownTool:
     name = "page_down"
     description = (
         "Scroll the viewport DOWN one page-length in the current webpage and return the new viewport content."
@@ -517,7 +518,7 @@ class PageDownTool(Tool):
         return header.strip() + "\n=======================\n" + content
 
 
-class FinderTool(Tool):
+class FinderTool:
     name = "find_on_page_ctrl_f"
     description = "Scroll the viewport to the first occurrence of the search string. This is equivalent to Ctrl+F."
     inputs = {
@@ -545,7 +546,7 @@ class FinderTool(Tool):
             return header.strip() + "\n=======================\n" + content
 
 
-class FindNextTool(Tool):
+class FindNextTool:
     name = "find_next"
     description = "Scroll the viewport to next occurrence of the search string. This is equivalent to finding the next match in a Ctrl+F search."
     inputs = {}
