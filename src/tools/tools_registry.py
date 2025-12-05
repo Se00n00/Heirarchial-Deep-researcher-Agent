@@ -1,8 +1,41 @@
-from tools.python_interpreter.python_intrepeter import PythonInterpreterTool
+# from tools.python_interpreter.python_intrepeter import PythonInterpreterTool
 from tools.archive_searcher.archive_searcher import ArchiveSearcherTool
+from tools.web_browser.text_inspector import TextInspectorTool
+from tools.web_browser.web_browser import (
+    ArchiveSearchTool,
+    FinderTool,
+    FindNextTool,
+    PageDownTool,
+    PageUpTool,
+    SimpleTextBrowser,
+    VisitTool
+)
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36 Edg/119.0.0.0"
+BROWSER_CONFIG = {
+    "viewport_size": 1024 * 5,
+    "downloads_folder": "downloads_folder",
+    "request_kwargs": {
+        "headers": {"User-Agent": user_agent},
+        "timeout": 300,
+    },
+    "serpapi_key": os.environ["SERPAPI_API_KEY"],
+}
+browser = SimpleTextBrowser(**BROWSER_CONFIG)
+
+visit_tool = VisitTool(browser)
+page_up_tool = PageUpTool(browser)
+page_down_tool = PageDownTool(browser)
+finder_tool = FinderTool(browser)
+find_next_tool = FindNextTool(browser)
+archive_search_tool = ArchiveSearchTool(browser)
 
 archive = ArchiveSearcherTool()
-interpreter = PythonInterpreterTool()
+# interpreter = PythonInterpreterTool()
 
 tools = {
     "deep_analyzer_tool": {
@@ -25,7 +58,7 @@ tools = {
             "required": []
         },
         "output_type": "any",
-        "function": interpreter.forward
+        "function":  ""
     },
     "python_interpreter_tool": {
         "name": "python_interpreter_tool",
@@ -41,29 +74,7 @@ tools = {
             "required": ["code"]
         },
         "output_type": "any",
-        "function": interpreter.forward
-    },
-    "deep_analyzer_tool": {
-        "name": "deep_analyzer_tool",
-        "description": "A Groq-powered tool that performs systematic, step-by-step task analysis and reasoning, optionally using an attached file or URL for context.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "task": {
-                    "type": "string",
-                    "nullable": True,
-                    "description": "The task to be analyzed. If omitted, the tool will caption or analyze the provided source."
-                },
-                "source": {
-                    "type": "string",
-                    "nullable": True,
-                    "description": "Local file path or URL to analyze. Can handle PDF, text files, or external URIs."
-                }
-            },
-            "required": []
-        },
-        "output_type": "any",
-        "function": interpreter.forward
+        "function": ""
     },
     "archive_searcher_tool": {
         "name": "archive_searcher_tool",
@@ -85,25 +96,89 @@ tools = {
         "output_type": "any",
         "function": archive.forward
     },
-    "web_search": {
-        "name": "web_search",
-        "description": "Performs a Google-style web search and returns textual search results.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "The search query."
-                    },
-                    "filter_year": {
-                        "type": "string",
-                        "nullable": True,
-                        "description": "Optional. Restrict results to a specific year."
-                    }
-                },
-                "required": ["query"]
-            },
+    "visit_page": {
+        "name": "visit_page",
+        "description": "Visit a webpage at a given URL and return its text. Given a url to a YouTube video, this returns the transcript.",
+        "parameters": {
+        "type": "object",
+        "properties": {
+            "url": {
+            "type": "string",
+            "description": "The relative or absolute url of the webpage to visit."
+            }
+        },
+        "required": ["url"]
+        },
         "output_type": "string",
-        "function": interpreter.forward
+        "function": visit_tool.forward
+    },
+    "page_up": {
+        "name": "page_up",
+        "description": "Scroll the viewport UP one page-length in the current webpage and return the new viewport content.",
+        "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+        },
+        "output_type": "string",
+        "function": page_up_tool.forward
+    },
+    "page_down": {
+        "name": "page_down",
+        "description": "Scroll the viewport DOWN one page-length in the current webpage and return the new viewport content.",
+        "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+        },
+        "output_type": "string",
+        "function": page_down_tool.forward
+    },
+    "find_on_page_ctrl_f": {
+        "name": "find_on_page_ctrl_f",
+        "description": "Scroll the viewport to the first occurrence of the search string. This is equivalent to Ctrl+F.",
+        "parameters": {
+        "type": "object",
+        "properties": {
+            "search_string": {
+            "type": "string",
+            "description": "The string to search for on the page. This search string supports wildcards like '*'"
+            }
+        },
+        "required": ["search_string"]
+        },
+        "output_type": "string",
+        "function": finder_tool.forward
+    },
+    "find_next": {
+        "name": "find_next",
+        "description": "Scroll the viewport to next occurrence of the search string. This is equivalent to finding the next match in a Ctrl+F search.",
+        "parameters": {
+        "type": "object",
+        "properties": {},
+        "required": []
+        },
+        "output_type": "string",
+        "function": find_next_tool.forward
+    },
+    "find_archived_url": {
+        "name": "find_archived_url",
+        "description": "Given a url, searches the Wayback Machine and returns the archived version of the url that's closest in time to the desired date.",
+        "parameters": {
+        "type": "object",
+        "properties": {
+            "url": {
+            "type": "string",
+            "description": "The url you need the archive for."
+            },
+            "date": {
+            "type": "string",
+            "description": "The date that you want to find the archive for. Give this date in the format 'YYYYMMDD', for instance '27 June 2008' is written as '20080627'."
+            }
+        },
+        "required": ["url", "date"]
+        },
+        "output_type": "string",
+        "function": archive_search_tool.forward
     }
 }

@@ -41,7 +41,7 @@ This tool handles the following file extensions: [".html", ".htm", ".xlsx", ".pp
             return result.text_content
 
         if not question:
-            return result.text_content
+            return result.text_contentz5zt
 
         if len(result.text_content) < 4000:
             return "Document content: " + result.text_content
