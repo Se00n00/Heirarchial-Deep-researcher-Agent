@@ -1,5 +1,6 @@
 langchain_openai
 pydantic
+groq
 aiohttp
 waybackpy
 anthropic>=0.37.1
