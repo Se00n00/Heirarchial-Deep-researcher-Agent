@@ -4,7 +4,7 @@ from fastapi import FastAPI, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-
+import asyncio
 
 import json
 
@@ -40,16 +40,45 @@ class RequestModel(BaseModel):
 @app.post("/chat")
 async def chat(request: RequestModel):
     query = request.query
-    try:
-        def event_generator():
+
+    async def event_generator():
+        try:
+            # ← This is a SYNC generator → we must use normal 'for', not 'async for'
             for log in planner.forward(query):
                 print(log)
-                yield log
-            
-        return StreamingResponse(event_generator(), media_type='text/plain')
-    except Exception as e:
-        return {
-            "type":"SYSTEM",
-            "heading":"Exception",
-            "content": str(e)
+
+                # Decide what format you want to send
+                if isinstance(log, dict):
+                    payload = json.dumps(log) + "\n"
+                else:
+                    payload = json.dumps({"content": str(log)}) + "\n"
+
+                # Must yield str or bytes!
+                yield payload
+
+                # Very important: give the event loop a breath
+                await asyncio.sleep(0.01)
+
+            # Optional: signal end of stream
+            yield json.dumps({"type": "DONE"}) + "\n"
+
+        except Exception as e:
+            import traceback
+            error_payload = {
+                "type": "ERROR",
+                "heading": "Exception",
+                "content": str(e),
+                "traceback": traceback.format_exc()
+            }
+            yield json.dumps(error_payload) + "\n"
+
+    # Use text/event-stream for proper SSE (recommended)
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # disables nginx buffering
         }
+    )

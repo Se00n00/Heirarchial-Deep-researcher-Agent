@@ -64,13 +64,13 @@ class Agent:
         "prompt_tokens": usage.prompt_tokens,
         "total_tokens": usage.total_tokens,
         "reasoning_tokens": usage.completion_tokens_details.reasoning_tokens,
-        "prompt_tokens_details": usage.prompt_tokens_details,
+        "prompt_tokens_details": usage.prompt_tokens_details if usage.prompt_tokens_details == None else usage.prompt_tokens_details.cached_tokens,
         "completion_time": usage.completion_time,
         "prompt_time": usage.prompt_time,
         "queue_time": usage.queue_time,
         "total_time": usage.total_time,
         "resoning": completion_obj.choices[0].message.reasoning,
-        "x_groq": completion_obj.x_groq,
+        "x_groq": completion_obj.x_groq.id,
     }
 
 
@@ -105,16 +105,18 @@ class Agent:
       res = Output.model_validate(json.loads(raw))
 
       # LOG 1: Agent's Call > More MetaData
-      yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":res}}
+      yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":{"name":res.name,"arguments":res.arguments}}}
       
     except Exception as e:
       # LOG 2: Exception
-      yield {"type":"ERROR","content":e}
+      yield {"type":"ERROR","content":str(e)}
 
       res = Output(
         name = "final_answer",
         arguments = {"error":e}
       )
+
+    print(res)
 
     if res.name not in ["final_answer","final_answer_tool"]:
       
@@ -123,7 +125,7 @@ class Agent:
 
 
       elif res.name in self.managed_agents:
-        result = self.managed_agents[res.name]['function'](**res.arguments)
+        result = yield from self.managed_agents[res.name]['function'](**res.arguments)
 
       else:
         result = "tool / agent not found"
@@ -135,5 +137,8 @@ class Agent:
 
       self.execution_iteration += 1
       return self.forward()
-
+    
+    if res.name in ["final_answer","final_answer_tool"] and self.agent == "planning_agent":
+      yield {"type":"FINAL_ANSER","content":res.arguments.answer}
+    
     return res
