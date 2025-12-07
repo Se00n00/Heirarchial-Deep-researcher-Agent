@@ -285,17 +285,17 @@ class DeepResearcherTool(AsyncTool):
         return reference_materials + "\n" + content
 
 
-if __name__ == "__main__":
-    import asyncio
+# if __name__ == "__main__":
+#     import asyncio
     
-    async def test():
-        tool = DeepResearcherTool()
-        query = "How to make the best cheese omelette?"
-        result = await tool.forward(query=query)
+#     async def test():
+#         tool = DeepResearcherTool()
+#         query = "How to make the best cheese omelette?"
+#         result = await tool.forward(query=query)
         
-        if result.error:
-            print(f"Error: {result.error}")
-        else:
-            print(f"Success:\n{result.output}")
+#         if result.error:
+#             print(f"Error: {result.error}")
+#         else:
+#             print(f"Success:\n{result.output}")
     
-    asyncio.run(test())
+#     asyncio.run(test())
