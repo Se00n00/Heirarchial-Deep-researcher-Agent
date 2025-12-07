@@ -50,6 +50,29 @@ class Agent:
   def add_tools(self, tool_list):
     self.tools.update(tool_list)
   
+  def extract_completion_metadata(self, completion_obj):
+    usage = completion_obj.usage
+
+    return {
+        "id": completion_obj.id,
+        "model": completion_obj.model,
+        "created": completion_obj.created,
+        "object": completion_obj.object,
+        "service_tier": completion_obj.service_tier,
+        "system_fingerprint": completion_obj.system_fingerprint,
+        "completion_tokens": usage.completion_tokens,
+        "prompt_tokens": usage.prompt_tokens,
+        "total_tokens": usage.total_tokens,
+        "reasoning_tokens": usage.completion_tokens_details.reasoning_tokens,
+        "prompt_tokens_details": usage.prompt_tokens_details,
+        "completion_time": usage.completion_time,
+        "prompt_time": usage.prompt_time,
+        "queue_time": usage.queue_time,
+        "total_time": usage.total_time,
+        "resoning": completion_obj.choices[0].message.reasoning,
+        "x_groq": completion_obj.x_groq,
+    }
+
 
   def forward(self, task = None):
 
@@ -77,23 +100,21 @@ class Agent:
         messages=self.context
       )
 
-      # LOG 1: Agent's Call > More MetaData
-      # yield {"type":"ASSISTANT","content":{"Resoning":response.choices[0].message.reasoning,"res":res}}
-
+      
       raw = response.choices[0].message.content
       res = Output.model_validate(json.loads(raw))
 
+      # LOG 1: Agent's Call > More MetaData
+      yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":res}}
+      
     except Exception as e:
       # LOG 2: Exception
-      # yield {"type":"ERROR","content":e}
+      yield {"type":"ERROR","content":e}
 
       res = Output(
         name = "final_answer",
         arguments = {"error":e}
       )
-
-    print("EXECUTION :\n\n",res)
-
 
     if res.name not in ["final_answer","final_answer_tool"]:
       

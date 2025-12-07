@@ -41,8 +41,10 @@ class RequestModel(BaseModel):
 async def chat(request: RequestModel):
     query = request.query
     try:
-        async def event_generator():
-            planner.forward(query)
+        def event_generator():
+            for log in planner.forward(query):
+                print(log)
+                yield log
             
         return StreamingResponse(event_generator(), media_type='text/plain')
     except Exception as e:
