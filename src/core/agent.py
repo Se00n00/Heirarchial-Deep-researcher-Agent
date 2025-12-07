@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from jinja2 import Template
 import os
 import json
+from pathlib import Path
 
 load_dotenv()
 API_KEY = os.environ['GROQ_API_KEY']
