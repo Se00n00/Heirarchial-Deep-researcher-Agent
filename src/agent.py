@@ -24,32 +24,37 @@ from src.tools.tools_registry import tools
 
 from langchain_core.messages import HumanMessage
 
+DEEP_RESEARCHER_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
+BROWSER_USE_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/browser_use_agent.yaml"
+PLANNING_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
+USER_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/user_prompt.yaml"
+
 basic_managed_agent = {}
 
 planner = Agent(
-    model = "openai/gpt-oss-20b",
+    model = "openai/gpt-oss-120b",
     agent = "planning_agent",
     system_instructions_path = PLANNING_AGENT_TEMPLATE,
-    user_instructions_path = USER_INSTRUCTION_TEMPLATE,
+    user_instructions_path = USER_TEMPLATE,
     tools = {},
     managed_agents = basic_managed_agent
 )
 
 browser_use = Agent(
-    model = "openai/gpt-oss-20b",
+    model = "openai/gpt-oss-120b",
     agent = "browser_use_agent",
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
-    user_instructions_path = USER_INSTRUCTION_TEMPLATE,
-    tools = {k: tools[k] for k in ["visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url","python_interpreter_tool"]},
+    user_instructions_path = USER_TEMPLATE,
+    tools = {k: tools[k] for k in ["visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url"]},
     managed_agents = basic_managed_agent
 )
 
 deep_researcher = Agent(
-    model = "openai/gpt-oss-20b",
+    model = "openai/gpt-oss-120b",
     agent = "deep_researcher_agent",
     system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
-    user_instructions_path = USER_INSTRUCTION_TEMPLATE,
-    tools = {k: tools[k] for k in ["archive_searcher_tool","python_interpreter_tool"]},
+    user_instructions_path = USER_TEMPLATE,
+    tools = {k: tools[k] for k in ["archive_searcher_tool"]},
     managed_agents = basic_managed_agent
 )
 

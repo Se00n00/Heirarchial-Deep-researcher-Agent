@@ -1,15 +1,15 @@
-from openai import OpenAI
+from groq import Groq
 import os
 from dotenv import load_dotenv
 from jinja2 import Template
 
 load_dotenv()
+GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
-client = OpenAI(
-    api_key=os.environ["GROQ_API_KEY"],
-    base_url="https://api.groq.com/openai/v1",
+client = Groq(
+    api_key=GROQ_API_KEY
 )
-
+print(client.base_url)
 def render_yaml_template(self, file_path, var):
     with open(file_path, "r") as f:
       file_content = f.read()
@@ -19,8 +19,11 @@ def render_yaml_template(self, file_path, var):
   
 
 
-response = client.responses.create(
-    input="Explain the importance of fast language models, return is json format: 'name':'what are you answering', 'paramerers':'answering parameters'",
+response = client.chat.completions.create(
+    messages=[{
+       "role":"system",
+       "content":"""Explain the importance of fast language models, return is json format: 'name':'what are you answering', 'paramerers':'answering parameters'""",
+    }],
     model="openai/gpt-oss-20b",
 )
-print(response.output_text)
+print(response)

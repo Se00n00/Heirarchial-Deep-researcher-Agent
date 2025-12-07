@@ -23,17 +23,17 @@ BASE_URL = os.environ['GROQ_BASE_URL']
 class Agent:
   def __init__(self, model:str, agent:str, system_instructions_path:str, user_instructions_path:str, tools, managed_agents):
     self.inference_client = Groq(
-      api_key=os.environ["GROQ_API_KEY"],
+      api_key=os.environ["GROQ_API_KEY"]
     )
+    self.model= model
     self.agent = agent
-    self.contents = None
     self.context = None
     self.system_instructions_template_path = system_instructions_path
+    self.user_template_path = user_instructions_path
     self.tools = tools or {}
     self.managed_agents = managed_agents or {}
     self.feedbacks = {}
     self.execution_iteration = 0
-    self.user_prompt = ""
     
 
   def render_yaml_template(self, file_path, var):
@@ -50,62 +50,37 @@ class Agent:
     self.tools.update(tool_list)
   
 
-  def forward(self, message = None, task_from_manager = None):
-
-    # self.feedbacks.append({
-    #   "iteration": self.execution_iteration,
-    #   "name": "GIVEN TASK : ",
-    #   "final_answer": message or task_from_manager
-    # })
-
-    if self.execution_iteration == 0:
-
-      self.feedbacks.update({
-        self.execution_iteration :
-        {
-          "iteration": self.execution_iteration,
-          "name": "Given Task",
-          "final_answer": message or task_from_manager
-        }
-      })
-      self.execution_iteration += 1
-
+  def forward(self, task = None):
 
     prompt_variables = {
       "tools": self.tools or {},
       "managed_agents": self.managed_agents,
       "name": self.agent,
-      "task": message or task_from_manager,
-      "feedbacks": self.feedbacks
+      "task": task
     }
 
     # Update Context With Feedback ------------ >
-    if self.contents == None:
-      system_content = self.render_yaml_template(self.system_instructions_template_path, prompt_variables)
+    if self.context == None:
+      system = self.render_yaml_template(self.system_instructions_template_path, prompt_variables)
+      user = self.render_yaml_template(self.user_template_path, prompt_variables)
+      
       self.context = [
-        {"role": "system","content":system_content},
-        {"role": "user", "content":message or task_from_manager}
+        {"role": "system","content":system},
+        {"role": "user", "content":user}
       ]
 
-    # Call model with current contents
     try:
       response = self.inference_client.chat.completions.create(
-        input=self.context,
-        model="openai/gpt-oss-20b",
+        model= self.model,
+        messages=self.context
       )
 
-      # LOG 1: Agent's Call
+      # LOG 1: Agent's Call > More MetaData
       # yield {"type":"ASSISTANT","content":{"Resoning":response.choices[0].message.reasoning,"res":res}}
 
       raw = response.choices[0].message.content
-      if isinstance(raw, str):
-        raw = json.loads(raw)
+      res = Output.model_validate(json.loads(raw))
 
-      res = Output.model_validate(raw)
-
-      # res = self.model.invoke(
-      #   [SystemMessage(system_content),HumanMessage(content=f"Task: {message or task_from_manager}")]
-      # )
     except Exception as e:
       # LOG 2: Exception
       # yield {"type":"ERROR","content":e}
@@ -118,7 +93,7 @@ class Agent:
     print("EXECUTION :\n\n",res)
 
 
-    if res.name not in ["final_answer", "SYSTEM"]:
+    if res.name not in ["final_answer","final_answer_tool"]:
       
       if res.name in [tool['name'] for tool in self.tools.values()]:
         result = self.tools[res.name]['function'](**res.arguments)
@@ -130,15 +105,6 @@ class Agent:
       else:
         result = "tool / agent not found"
 
-      # self.feedbacks.update({
-      #   self.execution_iteration :
-      #   {
-      #     "iteration": self.execution_iteration,
-      #     "name": res.name,
-      #     "final_answer": result
-      #   }
-      # })
-
       self.context.append({
         "role":"assistant",
         "content": f"\nIteration [{self.execution_iteration}] : Observation from {res.name} : {result} \n"
@@ -147,4 +113,4 @@ class Agent:
       self.execution_iteration += 1
       return self.forward()
 
-    return res.arguments
+    return res
