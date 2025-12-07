@@ -24,14 +24,6 @@ from src.tools.tools_registry import tools
 
 from langchain_core.messages import HumanMessage
 
-<<<<<<< HEAD
-# DEEP_RESEARCHER_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
-# BROWSER_USE_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/browser_use_agent.yaml"
-# PLANNING_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
-# USER_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/user_prompt.yaml"
-
-=======
->>>>>>> 73b9465fba658a48e862074600ef8720773a3aeb
 basic_managed_agent = {}
 
 planner = Agent(
