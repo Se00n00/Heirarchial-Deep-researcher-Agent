@@ -17,7 +17,7 @@ BASE_URL = os.environ['GROQ_BASE_URL']
 # --------------------------------------------
 # ----------------- TODO ---------------------
 # [DONE][1] Fail Safe: Inference Engines: Openai API, ChatOpenAI , normal request: Returns > json schema + thougts
-# [][2] Fix / Break prompts and Fix Context Updation
+# [DONE][2] Fix / Break prompts and Fix Context Updation
 # [][3] Action Manager for planning_agent
 
 
@@ -66,6 +66,7 @@ class Agent:
       user = self.render_yaml_template(self.user_template_path, prompt_variables)
       
       self.context = [
+        {"role": "system", "content":"""Always return an answer no matter what, output format: {'name': name of tool/agent  ,'arguments': arguments to give to tool/ agent}  , use JSON format """},
         {"role": "system","content":system},
         {"role": "user", "content":user}
       ]
