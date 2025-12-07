@@ -2,8 +2,8 @@ import asyncio
 from types import ModuleType
 from typing import Any
 # from toolz import curry
-from tools import AsyncTool, ToolResult
-from local_python_executor import BASE_BUILTIN_MODULES, BASE_PYTHON_TOOLS, evaluate_python_code
+from .tools import AsyncTool, ToolResult
+from .local_python_executor import BASE_BUILTIN_MODULES, BASE_PYTHON_TOOLS, evaluate_python_code
 
 # @TOOL.register_module(name="python_interpreter_tool", force=True)
 class PythonInterpreterTool(AsyncTool):

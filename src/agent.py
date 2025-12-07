@@ -1,16 +1,28 @@
 import sys
 import os
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_root)
+# project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# sys.path.insert(0, project_root)
 
-from core.agent import Agent
+from pathlib import Path
+
+# Get the project root dynamically
+project_root = Path(__file__).resolve().parent.parent  # Goes up to HEIRARCHICAL-DEEP-RESEARCHER-AGENT/
+
+# Add project root to sys.path FIRST
+sys.path.insert(0, str(project_root))
+
+# Define template paths relative to project root
+DEEP_RESEARCHER_AGENT_TEMPLATE = project_root / "src/core/prompts/deep_researcher_agent.yaml"
+BROWSER_USE_AGENT_TEMPLATE = project_root / "src/core/prompts/browser_use_agent.yaml"
+PLANNING_AGENT_TEMPLATE = project_root / "src/core/prompts/planning_agent.yaml"
+USER_INSTRUCTION_TEMPLATE = project_root / "src/core/prompts/user_prompt.yaml"
+
+
+
+from src.core.agent import Agent
 from src.tools.tools_registry import tools
 
 from langchain_core.messages import HumanMessage
-
-DEEP_RESEARCHER_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
-BROWSER_USE_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/browser_use_agent.yaml"
-PLANNING_AGENT_TEMPLATE = "/run/media/seono/P/Heirarchial-Deep-researcher-Agent/src/core/prompts/planning_agent.yaml"
 
 basic_managed_agent = {}
 
@@ -18,6 +30,7 @@ planner = Agent(
     model = "openai/gpt-oss-20b",
     agent = "planning_agent",
     system_instructions_path = PLANNING_AGENT_TEMPLATE,
+    user_instructions_path = USER_INSTRUCTION_TEMPLATE,
     tools = {},
     managed_agents = basic_managed_agent
 )
@@ -26,7 +39,8 @@ browser_use = Agent(
     model = "openai/gpt-oss-20b",
     agent = "browser_use_agent",
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
-    tools = {k: tools[k] for k in ["visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url"]},
+    user_instructions_path = USER_INSTRUCTION_TEMPLATE,
+    tools = {k: tools[k] for k in ["visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url","python_interpreter_tool"]},
     managed_agents = basic_managed_agent
 )
 
@@ -34,7 +48,8 @@ deep_researcher = Agent(
     model = "openai/gpt-oss-20b",
     agent = "deep_researcher_agent",
     system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
-    tools = {k: tools[k] for k in ["archive_searcher_tool"]},
+    user_instructions_path = USER_INSTRUCTION_TEMPLATE,
+    tools = {k: tools[k] for k in ["archive_searcher_tool","python_interpreter_tool"]},
     managed_agents = basic_managed_agent
 )
 

@@ -1,7 +1,7 @@
-# from tools.python_interpreter.python_intrepeter import PythonInterpreterTool
-from tools.archive_searcher.archive_searcher import ArchiveSearcherTool
-from tools.web_browser.text_inspector import TextInspectorTool
-from tools.web_browser.web_browser import (
+from src.tools.python_interpreter.python_intrepeter import PythonInterpreterTool
+from src.tools.archive_searcher.archive_searcher import ArchiveSearcherTool
+from src.tools.web_browser.text_inspector import TextInspectorTool
+from src.tools.web_browser.web_browser import (
     ArchiveSearchTool,
     FinderTool,
     FindNextTool,
@@ -35,7 +35,7 @@ find_next_tool = FindNextTool(browser)
 archive_search_tool = ArchiveSearchTool(browser)
 
 archive = ArchiveSearcherTool()
-# interpreter = PythonInterpreterTool()
+interpreter = PythonInterpreterTool()
 
 tools = {
     "deep_analyzer_tool": {
@@ -74,7 +74,7 @@ tools = {
             "required": ["code"]
         },
         "output_type": "any",
-        "function": ""
+        "function": interpreter.forward
     },
     "archive_searcher_tool": {
         "name": "archive_searcher_tool",
