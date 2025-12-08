@@ -105,11 +105,11 @@ class Agent:
       res = Output.model_validate(json.loads(raw))
 
       # LOG 1: Agent's Call > More MetaData
-      yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":{"name":res.name,"arguments": {"answer":str(res)}}}}
+      # yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":{"name":res.name,"arguments": {"answer":str(res)}}}}
       
     except Exception as e:
       # LOG 2: Exception
-      yield {"type":"ERROR","content":str(e)}
+      # yield {"type":"ERROR","content":str(e)}
 
       res = Output(
         name = "final_answer",
@@ -125,7 +125,7 @@ class Agent:
 
 
       elif res.name in self.managed_agents:
-        result = yield from self.managed_agents[res.name]['function'](**res.arguments)
+        result = self.managed_agents[res.name]['function'](**res.arguments)
 
       else:
         result = "tool / agent not found"
@@ -138,8 +138,8 @@ class Agent:
       self.execution_iteration += 1
       return self.forward()
     
-    if res.name in ["final_answer","final_answer_tool"] and self.agent == "planning_agent":
-      yield {"type": "FINAL_ANSWER", "content": res.arguments.get("answer")}
+    # if res.name in ["final_answer","final_answer_tool"] and self.agent == "planning_agent":
+    #   yield {"type": "FINAL_ANSWER", "content": res.arguments.get("answer")}
 
     
     return res
