@@ -74,72 +74,114 @@ class Agent:
     }
 
 
-  def forward(self, task = None):
-
+  async def forward(self, task=None):
     prompt_variables = {
-      "tools": self.tools or {},
-      "managed_agents": self.managed_agents,
-      "name": self.agent,
-      "task": task
+        "tools": self.tools or {},
+        "managed_agents": self.managed_agents,
+        "name": self.agent,
+        "task": task
     }
 
-    # Update Context With Feedback ------------ >
-    if self.context == None:
-      system = self.render_yaml_template(self.system_instructions_template_path, prompt_variables)
-      user = self.render_yaml_template(self.user_template_path, prompt_variables)
-      
-      self.context = [
-        {"role": "system", "content":"""Always return an answer no matter what, output format: {'name': name of tool/agent  ,'arguments': arguments to give to tool/ agent}  , use JSON format """},
-        {"role": "system","content":system},
-        {"role": "user", "content":user}
-      ]
+    # Initial context
+    if self.context is None:
+        system = self.render_yaml_template(self.system_instructions_template_path, prompt_variables)
+        user = self.render_yaml_template(self.user_template_path, prompt_variables)
+
+        self.context = [
+            {
+                "role": "system",
+                "content": "Always return an answer no matter what. "
+                           "Output format: {'name': ..., 'arguments': ...} in JSON."
+            },
+            {"role": "system", "content": system},
+            {"role": "user", "content": user}
+        ]
 
     try:
-      response = self.inference_client.chat.completions.create(
-        model= self.model,
-        messages=self.context
-      )
+        response = self.inference_client.chat.completions.create(
+            model=self.model,
+            messages=self.context
+        )
 
-      
-      raw = response.choices[0].message.content
-      res = Output.model_validate(json.loads(raw))
+        raw = response.choices[0].message.content
+        res = Output.model_validate(json.loads(raw))
 
-      # LOG 1: Agent's Call > More MetaData
-      yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":{"name":res.name,"arguments": {"answer":str(res)}}}}
-      
+        # SEND LOG 1
+        yield {
+            "type": "ASSISTANT",
+            "content": {
+                "metadata": self.extract_completion_metadata(response),
+                "response": {
+                    "name": res.name,
+                    "arguments": {"answer": str(res)}
+                }
+            }
+        }
+
     except Exception as e:
-      # LOG 2: Exception
-      yield {"type":"ERROR","content":str(e)}
+        # SEND LOG 2
+        yield {"type": "ERROR", "content": str(e)}
 
-      res = Output(
-        name = "final_answer",
-        arguments = {"error":e}
-      )
+        res = Output(
+            name="final_answer",
+            arguments={"error": str(e)}
+        )
 
-    print(res)
+    # Execution path
+    if res.name not in ("final_answer", "final_answer_tool"):
 
-    if res.name not in ["final_answer","final_answer_tool"]:
-      
-      if res.name in [tool['name'] for tool in self.tools.values()]:
-        result = self.tools[res.name]['function'](**res.arguments)
+        import inspect
 
+        # TOOL CALL -------------------------
+        if res.name in [tool["name"] for tool in self.tools.values()]:
+            func = self.tools[res.name]["function"]
+            call_result = func(**res.arguments)
 
-      elif res.name in self.managed_agents:
-        result = yield from self.managed_agents[res.name]['function'](**res.arguments)
+            if inspect.isawaitable(call_result):
+                result = await call_result
+            else:
+                result = call_result
 
-      else:
-        result = "tool / agent not found"
+        # MANAGED AGENT ---------------------
+        elif res.name in self.managed_agents:
+            subagent = self.managed_agents[res.name]["function"]
+            sub = subagent(**res.arguments)
 
-      self.context.append({
-        "role":"assistant",
-        "content": f"\nIteration [{self.execution_iteration}] : Observation from {res.name} : {result} \n"
-      })
+            # If it's async generator → iterate
+            if inspect.isasyncgen(sub):
+                async for x in sub:
+                    yield x
+                result = x
+            else:
+                # If coroutine → await
+                if inspect.isawaitable(sub):
+                    result = await sub
+                else:
+                    result = sub
 
-      self.execution_iteration += 1
-      return self.forward()
-    
-    if res.name in ["final_answer","final_answer_tool"] and self.agent == "planning_agent":
-      yield {"type": "FINAL_ANSWER", "content": res.arguments.get("answer")}
+        # UNKNOWN
+        else:
+            result = "tool / agent not found"
 
-    
-    return res
+        # Update context
+        self.context.append({
+            "role": "assistant",
+            "content": f"\nIteration [{self.execution_iteration}] → Observation from {res.name}: {result}\n"
+        })
+
+        self.execution_iteration += 1
+
+        # RECURSE correctly using `async for`
+        async for msg in self.forward():
+            yield msg
+        return
+
+    # Final answer (only for planning agent)
+    if res.name in ("final_answer", "final_answer_tool") and self.agent == "planning_agent":
+        yield {"type": "FINAL_ANSWER", "content": res.arguments.get("answer")}
+
+    # FINAL RETURN (async generator cannot use `return`)
+    yield {
+        "type": "FINAL_ANSWER",
+        "content": res.arguments
+    }

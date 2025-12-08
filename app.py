@@ -43,42 +43,34 @@ async def chat(request: RequestModel):
 
     async def event_generator():
         try:
-            # ← This is a SYNC generator → we must use normal 'for', not 'async for'
-            for log in planner.forward(query):
-                print(log)
+            async for log in planner.forward(query):
 
-                # Decide what format you want to send
-                if isinstance(log, dict):
-                    payload = json.dumps(log) + "\n"
-                else:
-                    payload = json.dumps({"content": str(log)}) + "\n"
+                print("LOG:", log)
 
-                # Must yield str or bytes!
+                # Format output
+                payload = json.dumps(log) + "\n"
+
                 yield payload
+                await asyncio.sleep(0.001)
 
-                # Very important: give the event loop a breath
-                await asyncio.sleep(0.01)
-
-            # Optional: signal end of stream
             yield json.dumps({"type": "DONE"}) + "\n"
 
         except Exception as e:
             import traceback
-            error_payload = {
+
+            yield json.dumps({
                 "type": "ERROR",
                 "heading": "Exception",
                 "content": str(e),
                 "traceback": traceback.format_exc()
-            }
-            yield json.dumps(error_payload) + "\n"
+            }) + "\n"
 
-    # Use text/event-stream for proper SSE (recommended)
     return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",  # disables nginx buffering
+            "X-Accel-Buffering": "no",
         }
     )
