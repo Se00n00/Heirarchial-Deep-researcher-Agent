@@ -2,6 +2,8 @@ from src.tools.python_interpreter.python_intrepeter import PythonInterpreterTool
 from src.tools.archive_searcher.archive_searcher import ArchiveSearcherTool
 from src.tools.web_browser.text_inspector import TextInspectorTool
 from src.tools.web_browser.web_browser import (
+    SearchInformationTool,
+    DownloadTool,
     ArchiveSearchTool,
     FinderTool,
     FindNextTool,
@@ -27,6 +29,8 @@ BROWSER_CONFIG = {
 }
 browser = SimpleTextBrowser(**BROWSER_CONFIG)
 
+download_tool = DownloadTool(browser)
+search_tool = SearchInformationTool(browser)
 visit_tool = VisitTool(browser)
 page_up_tool = PageUpTool(browser)
 page_down_tool = PageDownTool(browser)
@@ -37,7 +41,26 @@ archive_search_tool = ArchiveSearchTool(browser)
 archive = ArchiveSearcherTool()
 interpreter = PythonInterpreterTool()
 
+def final_answer(answer):
+    return answer
+
 tools = {
+    "final_answer":{
+        "name":"final_answer",
+        "description":"Your last tool call for summitting your result to manager agent",
+        "parameters":{
+            "type": "object",
+            "properties": {
+                "answer":{
+                    "type":"string",
+                    "description": "Exact result / feedback you want to give"
+                }
+            },
+            "required": ["answer"]
+        },
+        "output_type":"any",
+        "function": final_answer
+    },
     "deep_analyzer_tool": {
         "name": "deep_analyzer_tool",
         "description": "A Groq-powered tool that performs systematic, step-by-step task analysis and reasoning, optionally using an attached file or URL for context.",
@@ -95,6 +118,41 @@ tools = {
         },
         "output_type": "any",
         "function": archive.forward
+    },
+    "web_search_tool":{
+        "name": "web_search_tool",
+        "description": "Perform a web search (like Google) and return the results.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "The search query."},
+                "filter_year": {
+                    "type": ["string", "null"],
+                    "description": "Optional year filter (e.g., '2024') to restrict results to pages from that year.",
+                    "default": None
+                }
+            },
+            "required": ["query"]
+        },
+        "output_type": "string",
+        "function": search_tool.forward
+    },
+    "download_tool":{
+        "name": "download_tool",
+        "description": """
+Download a file from a URL. Allowed extensions: .xlsx, .pptx, .wav, .mp3, .m4a, .png, .jpg, .jpeg, .docx, etc.
+Do NOT use for .pdf, .txt, .html — use visit_page instead.
+ArXiv abstract URLs are automatically converted to PDF URLs.
+        """.strip(),
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "Direct URL to the file."}
+            },
+            "required": ["url"]
+        },
+        "output_type": "string",
+        "function": download_tool.forward
     },
     "visit_page": {
         "name": "visit_page",

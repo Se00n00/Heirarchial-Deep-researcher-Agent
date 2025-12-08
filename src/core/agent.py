@@ -105,7 +105,7 @@ class Agent:
       res = Output.model_validate(json.loads(raw))
 
       # LOG 1: Agent's Call > More MetaData
-      yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":{"name":res.name,"arguments":res.arguments}}}
+      yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":{"name":res.name,"arguments": {"answer":str(res)}}}}
       
     except Exception as e:
       # LOG 2: Exception
@@ -139,6 +139,7 @@ class Agent:
       return self.forward()
     
     if res.name in ["final_answer","final_answer_tool"] and self.agent == "planning_agent":
-      yield {"type":"FINAL_ANSER","content":res.arguments.answer}
+      yield {"type": "FINAL_ANSWER", "content": res.arguments.get("answer")}
+
     
     return res

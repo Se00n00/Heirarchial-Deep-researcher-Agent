@@ -40,7 +40,7 @@ browser_use = Agent(
     agent = "browser_use_agent",
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
-    tools = {k: tools[k] for k in ["visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url"]},
+    tools = {k: tools[k] for k in ["web_search_tool","download_tool","visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url"]},
     managed_agents = basic_managed_agent
 )
 

@@ -201,6 +201,7 @@ class SimpleTextBrowser:
             start_idx = end_idx
 
     def _serpapi_search(self, query: str, filter_year: int | None = None) -> None:
+        
         if self.serpapi_key is None:
             raise ValueError("Missing SerpAPI key.")
 
