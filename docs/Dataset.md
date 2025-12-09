@@ -1,5 +1,3 @@
----
-
 # Dataset Descriptions
 
 This repository includes three datasets used for evaluating the agent: **SIMPLE-QA**, **HLE**, and **GAIA**.
