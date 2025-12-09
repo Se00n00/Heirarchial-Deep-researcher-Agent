@@ -1,6 +1,6 @@
 # Dataset Descriptions
 
-This repository includes three datasets used for evaluating the agent: **SIMPLE-QA**, **HLE**, and **GAIA**.
+This document includes three datasets used for evaluating the agent: **SIMPLE-QA**, **HLE**, and **GAIA**.
 Each subsection provides dataset statistics, modality information, metadata schema, and other relevant characteristics.
 
 ---
@@ -36,7 +36,7 @@ Each entry contains:
 
 ### **Overview**
 
-The HLE (High-Level Evaluation) dataset is a **multimodal benchmark** containing complex reasoning questions across a wide range of domains. Although images are included, the majority of questions are text-only.
+The HLE (Humanity's Last Exam) dataset is a **multimodal benchmark** containing complex reasoning questions across a wide range of domains. Although images are included, the majority of questions are text-only.
 
 ### **Statistics**
 
