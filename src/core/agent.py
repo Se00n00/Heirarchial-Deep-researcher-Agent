@@ -54,27 +54,34 @@ class Agent:
     usage = completion_obj.usage
 
     return {
-        "id": completion_obj.id,
-        "model": completion_obj.model,
-        "created": completion_obj.created,
-        "object": completion_obj.object,
-        "service_tier": completion_obj.service_tier,
-        "system_fingerprint": completion_obj.system_fingerprint,
-        "completion_tokens": usage.completion_tokens,
-        "prompt_tokens": usage.prompt_tokens,
-        "total_tokens": usage.total_tokens,
-        "reasoning_tokens": usage.completion_tokens_details.reasoning_tokens,
-        "prompt_tokens_details": usage.prompt_tokens_details if usage.prompt_tokens_details == None else usage.prompt_tokens_details.cached_tokens,
-        "completion_time": usage.completion_time,
-        "prompt_time": usage.prompt_time,
-        "queue_time": usage.queue_time,
-        "total_time": usage.total_time,
-        "resoning": completion_obj.choices[0].message.reasoning,
-        "x_groq": completion_obj.x_groq.id,
+      "id": completion_obj.id,
+      "model": completion_obj.model,
+      "created": completion_obj.created,
+      "object": completion_obj.object,
+      "service_tier": completion_obj.service_tier,
+      "system_fingerprint": completion_obj.system_fingerprint,
+      "completion_tokens": usage.completion_tokens,
+      "prompt_tokens": usage.prompt_tokens,
+      "total_tokens": usage.total_tokens,
+      "reasoning_tokens": usage.completion_tokens_details.reasoning_tokens,
+      "prompt_tokens_details": usage.prompt_tokens_details if usage.prompt_tokens_details == None else usage.prompt_tokens_details.cached_tokens,
+      "completion_time": usage.completion_time,
+      "prompt_time": usage.prompt_time,
+      "queue_time": usage.queue_time,
+      "total_time": usage.total_time,
+      "resoning": completion_obj.choices[0].message.reasoning,
+      "x_groq": completion_obj.x_groq.id,
     }
+  
+  def clean_context(self):
+    """
+      Clean the context of given agent
+      
+      :return: None
+    """
+    self.context = None
 
-
-  def forward(self, task = None):
+  def forward(self, task = None, new_task = None):
 
     prompt_variables = {
       "tools": self.tools or {},
@@ -84,7 +91,7 @@ class Agent:
     }
 
     # Update Context With Feedback ------------ >
-    if self.context == None:
+    if self.context == None and new_task == True:
       system = self.render_yaml_template(self.system_instructions_template_path, prompt_variables)
       user = self.render_yaml_template(self.user_template_path, prompt_variables)
       
