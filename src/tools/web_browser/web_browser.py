@@ -8,6 +8,7 @@ import time
 import uuid
 from typing import Any
 from urllib.parse import unquote, urljoin, urlparse
+from ddgs import DDGS
 
 import pathvalidate
 import requests
@@ -17,6 +18,8 @@ from serpapi import GoogleSearch
 from .cookies import COOKIES
 from .mdconvert import FileConversionException, MarkdownConverter, UnsupportedFormatException
 
+# TODO: Limit page's snippit
+# Why? model might find unfinished or assume from short quick snippit before visiting the page
 
 class SimpleTextBrowser:
     """(In preview) An extremely simple text-based web browser comparable to Lynx. Suitable for Agentic use."""
@@ -51,7 +54,7 @@ class SimpleTextBrowser:
         """Return the address of the current page."""
         return self.history[-1][0]
 
-    def set_address(self, uri_or_path: str, filter_year: int | None = None) -> None:
+    def set_address(self, uri_or_path: str, filter_time: str | None = None) -> None:
         # TODO: Handle anchors
         self.history.append((uri_or_path, time.time()))
 
@@ -59,7 +62,7 @@ class SimpleTextBrowser:
         if uri_or_path == "about:blank":
             self._set_page_content("")
         elif uri_or_path.startswith("google:"):
-            self._serpapi_search(uri_or_path[len("google:") :].strip(), filter_year=filter_year)
+            self._serpapi_search(uri_or_path[len("google:") :].strip(), filter_time=filter_time)
         else:
             if (
                 not uri_or_path.startswith("http:")
@@ -173,9 +176,9 @@ class SimpleTextBrowser:
 
         return None
 
-    def visit_page(self, path_or_uri: str, filter_year: int | None = None) -> str:
+    def visit_page(self, path_or_uri: str, filter_time: int | None = None) -> str:
         """Update the address, visit the page, and return the content of the viewport."""
-        self.set_address(path_or_uri, filter_year=filter_year)
+        self.set_address(path_or_uri, filter_time=filter_time)
         return self.viewport
 
     def _split_pages(self) -> None:
@@ -200,30 +203,35 @@ class SimpleTextBrowser:
             self.viewport_pages.append((start_idx, end_idx))
             start_idx = end_idx
 
-    def _serpapi_search(self, query: str, filter_year: int | None = None) -> None:
+    def _serpapi_search(self, query: str, filter_time: str | None = None) -> None:
         
-        if self.serpapi_key is None:
-            raise ValueError("Missing SerpAPI key.")
+        # if self.serpapi_key is None: filter_year
+        #     raise ValueError("Missing SerpAPI key.")
 
         params = {
-            "engine": "google",
-            "q": query,
-            "api_key": self.serpapi_key,
+            "query": query,
+            "region": "us-en",
+            "safesearch": "off",
+            "timelimit": filter_time,
+            "max_results": 10,
+            "page": 1,
+            "backend": "auto"
         }
-        if filter_year is not None:
-            params["tbs"] = f"cdr:1,cd_min:01/01/{filter_year},cd_max:12/31/{filter_year}"
+        # if filter_year is not None:
+        #     params["tbs"] = f"cdr:1,cd_min:01/01/{filter_year},cd_max:12/31/{filter_year}"
 
-        search = GoogleSearch(params)
-        results = search.get_dict()
+        results = DDGS().text(**params)
+        # results = search.get_dict()
         self.page_title = f"{query} - Search"
-        if "organic_results" not in results.keys():
-            raise Exception(f"No results found for query: '{query}'. Use a less specific query.")
-        if len(results["organic_results"]) == 0:
-            year_filter_message = f" with filter year={filter_year}" if filter_year is not None else ""
-            self._set_page_content(
-                f"No results found for '{query}'{year_filter_message}. Try with a more general query, or remove the year filter."
-            )
-            return
+
+        # if "organic_results" not in results.keys():
+        #     raise Exception(f"No results found for query: '{query}'. Use a less specific query.")
+        # if len(results["organic_results"]) == 0:
+        #     year_filter_message = f" with filter year={filter_year}" if filter_year is not None else ""
+        #     self._set_page_content(
+        #         f"No results found for '{query}'{year_filter_message}. Try with a more general query, or remove the year filter."
+        #     )
+        #     return
 
         def _prev_visit(url):
             for i in range(len(self.history) - 1, -1, -1):
@@ -233,25 +241,25 @@ class SimpleTextBrowser:
 
         web_snippets: list[str] = list()
         idx = 0
-        if "organic_results" in results:
-            for page in results["organic_results"]:
-                idx += 1
-                date_published = ""
-                if "date" in page:
-                    date_published = "\nDate published: " + page["date"]
 
-                source = ""
-                if "source" in page:
-                    source = "\nSource: " + page["source"]
+        for page in results:
+            idx += 1
+            # date_published = ""
+            # if "date" in page:
+            #     date_published = "\nDate published: " + page["date"]
 
-                snippet = ""
-                if "snippet" in page:
-                    snippet = "\n" + page["snippet"]
+            # source = ""
+            # if "source" in page:
+            #     source = "\nSource: " + page["source"]
 
-                redacted_version = f"{idx}. [{page['title']}]({page['link']}){date_published}{source}\n{_prev_visit(page['link'])}{snippet}"
+            # snippet = ""
+            # if "snippet" in page:
+            #     snippet = "\n" + page["snippet"]
 
-                redacted_version = redacted_version.replace("Your browser can't play this video.", "")
-                web_snippets.append(redacted_version)
+            redacted_version = f"{idx}. [{page['title']}]({page['href']})\n\n{_prev_visit(page['href'])}{page['body']}"
+
+            redacted_version = redacted_version.replace("Your browser can't play this video.", "")
+            web_snippets.append(redacted_version)
 
         content = (
             f"A Google search for '{query}' found {len(web_snippets)} results:\n\n## Web Results\n"
@@ -372,11 +380,11 @@ class SimpleTextBrowser:
 
 class SearchInformationTool:
     name = "web_search"
-    description = "Perform a web search query (think a google search) and returns the search results."
+    description = "Perform a web search query (think a any search: bing, brave, duckduckgo, google, mojeek, yandex, yahoo, wikipedia ) and returns the search results."
     inputs = {"query": {"type": "string", "description": "The web search query to perform."}}
-    inputs["filter_year"] = {
+    inputs["filter_time"] = {
         "type": "string",
-        "description": "[Optional parameter]: filter the search results to only include pages from a specific year. For example, '2020' will only include pages from 2020. Make sure to use this parameter if you're trying to search for articles from a specific date!",
+        "description": "[Optional parameter]: d, w, m, y. Defaults to None.",
         "nullable": True,
     }
     output_type = "string"
@@ -385,8 +393,8 @@ class SearchInformationTool:
         super().__init__()
         self.browser = browser
 
-    def forward(self, query: str, filter_year: int | None = None) -> str:
-        self.browser.visit_page(f"google: {query}", filter_year=filter_year)
+    def forward(self, query: str, filter_time: str | None = None) -> str:
+        self.browser.visit_page(f"google: {query}", filter_time=filter_time)
         header, content = self.browser._state()
         return header.strip() + "\n=======================\n" + content
 
