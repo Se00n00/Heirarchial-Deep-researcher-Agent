@@ -13,7 +13,7 @@ from ddgs import DDGS
 import pathvalidate
 import requests
 from serpapi import GoogleSearch
-
+from markdownify import markdownify as md
 
 from .cookies import COOKIES
 from .mdconvert import FileConversionException, MarkdownConverter, UnsupportedFormatException
@@ -271,7 +271,7 @@ class SimpleTextBrowser:
     def _fetch_page(self, url: str) -> None:
         download_path = ""
         try:
-            if url.startswith("file://"):
+            if url.startswith("file://"): # locall files
                 download_path = os.path.normcase(os.path.normpath(unquote(url[7:])))
                 res = self._mdconvert.convert_local(download_path)
                 self.page_title = res.title
@@ -290,9 +290,14 @@ class SimpleTextBrowser:
 
                 # Text or HTML
                 if "text/" in content_type.lower():
+                    
                     res = self._mdconvert.convert_response(response)
+                    response = requests.get(url, **request_kwargs)
+                    mdfied = md(response.text)
+
                     self.page_title = res.title
-                    self._set_page_content(res.text_content)
+                    self._set_page_content(mdfied)
+
                 # A download
                 else:
                     # Try producing a safe filename

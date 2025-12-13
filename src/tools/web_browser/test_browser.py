@@ -37,4 +37,30 @@ finder_tool = FinderTool(browser)
 find_next_tool = FindNextTool(browser)
 archive_search_tool = ArchiveSearchTool(browser)
 
-print(search_tool.forward("japan"))
+
+from mdconvert import FileConversionException, MarkdownConverter
+import requests
+
+mdconvert = MarkdownConverter()
+from markdownify import markdownify as md
+
+request_kwargs = browser.request_kwargs.copy() if browser.request_kwargs is not None else {}
+request_kwargs["stream"] = True
+
+# print(request_kwargs)
+url = "https://www.reddit.com/r/ExperiencedDevs/comments/16gxkft/how_to_quickly_understand_large_codebases/"
+# response = requests.get(f"https://heckyesmarkdown.com/api/2/?u={url}", **request_kwargs)
+# print(response.text)
+# print("\n\n\n\n")
+
+# response = requests.get(url, **request_kwargs)
+# mdfied = md(response.text)
+# print(mdfied)
+# print("\n\n\n\n\n")
+
+# re = mdconvert.convert_url(response)
+# print(re)
+
+
+url = "https://www.houseidea.com/blog/exploring-different-blueprints-for-my-house/"
+print(visit_tool.forward(url))
