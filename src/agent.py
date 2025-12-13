@@ -34,14 +34,21 @@ planner = Agent(
     tools = {},
     managed_agents = basic_managed_agent
 )
+planner.add_tools(
+    tools = {k: tools[k] for k in ["final_answer"]},
+)
 
 browser_use = Agent(
     model = "openai/gpt-oss-120b",
     agent = "browser_use_agent",
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
-    tools = {k: tools[k] for k in ["web_search_tool","download_tool","visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url"]},
+    tools = {},
     managed_agents = basic_managed_agent
+)
+
+browser_use.add_tools(
+    tools = {k: tools[k] for k in ["final_answer","web_search_tool","download_tool","visit_page","page_up","page_down","find_on_page_ctrl_f","find_next","find_archived_url"]},
 )
 
 deep_researcher = Agent(
@@ -49,8 +56,12 @@ deep_researcher = Agent(
     agent = "deep_researcher_agent",
     system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
-    tools = {k: tools[k] for k in ["archive_searcher_tool"]},
+    tools = {},
     managed_agents = basic_managed_agent
+)
+
+deep_researcher.add_tools(
+    tools = {k: tools[k] for k in ["final_answer","archive_searcher_tool"]},
 )
 
 browser_use_description = {

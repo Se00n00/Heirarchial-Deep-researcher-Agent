@@ -41,7 +41,7 @@ archive_search_tool = ArchiveSearchTool(browser)
 archive = ArchiveSearcherTool()
 interpreter = PythonInterpreterTool()
 
-def final_answer(answer):
+def final_answer(answer, citations = None):
     return answer
 
 tools = {
@@ -54,6 +54,10 @@ tools = {
                 "answer":{
                     "type":"string",
                     "description": "Exact result / feedback you want to give"
+                },
+                "citations":{
+                    "type":"list[str]",
+                    "description": "citations urls / source"
                 }
             },
             "required": ["answer"]
@@ -121,16 +125,19 @@ tools = {
     },
     "web_search_tool":{
         "name": "web_search_tool",
-        "description": "Perform a web search (like Google) and return the results.",
+        "description": "Perform a web search (using engines such as DuckDuckGo, Bing, Google, etc.) and return the results.",
         "parameters": {
             "type": "object",
             "properties": {
-                "query": {"type": "string", "description": "The search query."},
-                "filter_year": {
-                    "type": ["string", "null"],
-                    "description": "Optional year filter (e.g., '2024') to restrict results to pages from that year.",
-                    "default": None
-                }
+            "query": {
+                "type": "string",
+                "description": "The search query."
+            },
+            "filter_time": {
+                "type": ["string", "null"],
+                "description": "Optional time filter: d (day), w (week), m (month), y (year).",
+                "default": None
+            }
             },
             "required": ["query"]
         },

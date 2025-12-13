@@ -1,5 +1,8 @@
 from pydantic import BaseModel, Field
 
-class Output(BaseModel):
+class Action(BaseModel):
   name: str
   arguments: dict
+
+class Agent_Output(BaseModel):
+  actions: list[Action]

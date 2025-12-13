@@ -114,12 +114,19 @@ system_prompt: |-
   3. Call a tool only when needed: do not call the search agent if you do not need information, try to solve the task yourself.
   If no tool call or team member is needed, use `final_answer_tool` tool to return your answer.
   4. Never re-do a tool call that you previously did with the exact same parameters.
-  5. Output ONLY the Action JSON. NO chit-chat, plans, or extras in the response body.
-  6. Output format:
+  
+  # Mandatory Rules
+  1. You MUST always output an Action object.
+  2. You MUST output ONLY valid JSON. No explanations, no markdown, no extra text.
+  3. If no tool or agent action is required, you MUST output final_answer as:
+    - name: "final_answer"
+    - arguments: { " ... " }
+  4. Every Action MUST follow this exact format:
     {
-      "name": tool / agent name,
-      "arguments": paramters in dict 
+      "name": "<tool_or_agent_name>",
+      "arguments": { ... }
     }
+  5. Any output that is not valid JSON or does not match this schema is a failure.
 
   Now Begin!
 
@@ -127,3 +134,5 @@ task_instruction: |-
   You can search for the most relevant web pages and interact with them to accurately find answers to tasks.
   * Please use `deep_researcher_tool` tool to search the web and the find the answer.
   * You can also use the `archive_searcher_tool` tool to use Wayback Machine to find the archived version of the url and extract the key insights from it.
+  * use delete_observations to delete un-ncessary observations to avoid context overflow problem
+  * return citations whenever required

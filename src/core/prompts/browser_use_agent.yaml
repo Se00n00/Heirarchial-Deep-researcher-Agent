@@ -114,12 +114,19 @@ system_prompt: |-
   3. Call a tool only when needed: do not call the search agent if you do not need information, try to solve the task yourself.
   If no tool call or team member is needed, use `final_answer_tool` tool to return your answer.
   4. Never re-do a tool call that you previously did with the exact same parameters.
-  5. Output ONLY the Action JSON. NO chit-chat, plans, or extras in the response body.
-  6. Output format:
+  
+  # Mandatory Rules
+  1. You MUST always output an Action object.
+  2. You MUST output ONLY valid JSON. No explanations, no markdown, no extra text.
+  3. If no tool or agent action is required, you MUST output final_answer as:
+    - name: "final_answer"
+    - arguments: { " ... " }
+  4. Every Action MUST follow this exact format:
     {
-      "name": tool / agent name,
-      "arguments": paramters in dict 
+      "name": "<tool_or_agent_name>",
+      "arguments": { ... }
     }
+  5. Any output that is not valid JSON or does not match this schema is a failure.
 
   Now Begin!
 
@@ -128,3 +135,5 @@ task_instruction: |-
   * Please use `auto_browser_use_tool` tool to search the web and interact with them to find the answer. When you require to use it, please provide the original task as the `task` parameter for the tool. DO NOT modify the task.
     - When you need to extract the content from the web page, do not ignore the content in the web screen shot.
   * You can also use the `python_interpreter_tool` tool to run any code to support your analysis.
+  * use delete_observations to delete un-ncessary observations to avoid context overflow problem.
+  * return citations whenever required
