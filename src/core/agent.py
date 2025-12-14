@@ -3,14 +3,17 @@ from .utils import render_yaml_template
 from .context_manager import Context_Manager
 
 from groq import Groq
+import groq
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 from langchain.agents import create_agent
 from dotenv import load_dotenv
 
 import os
+import time
 import json
 from pathlib import Path
+from pydantic import ValidationError
 
 load_dotenv()
 API_KEY = os.environ['GROQ_API_KEY']
@@ -40,6 +43,8 @@ class Agent:
     self.feedbacks = {}
     self.execution_iteration = 0
     self.tools ={}
+    self.MAX_RETRIES = 3
+    self.RATE_LIMIT_BACKOFF_SEC = 2
     
   def add_managed_agents(self, agent_list):
     self.managed_agents = agent_list
@@ -65,6 +70,59 @@ class Agent:
       "role": "user",
       "content": f"Relevant observations:\n\n{content}"
     }]
+  
+  def call_llm(self, tries = 0):
+    try:
+      response = self.inference_client.chat.completions.create(
+        model= self.model,
+        messages=self.context + self.build_observations(),
+        stream=False
+      )
+      raw = response.choices[0].message.content
+      return Action.model_validate(json.loads(raw))
+    
+    except (ValidationError, groq.BadRequestError) as e:
+      if tries >= self.MAX_RETRIES:
+        return Action(
+          name="final_answer",
+          arguments={
+            "error": type(e).__name__[0],
+            "message": str(e),
+          },
+        )
+
+        
+      
+      # TODO : Manage Context
+      if isinstance(e, ValidationError):
+        # assuming Validation Error had occured due to context pollution
+        pass
+
+      if isinstance(e, groq.BadRequestError):
+        # Optional: trim or reset context here
+        # self.context = self.context[-N:]
+        pass
+
+      return self.call_llm(tries=tries + 1)
+    
+    except groq.RateLimitError as e:
+      if tries >= self.MAX_RETRIES:
+        return Action(
+          name="final_answer",
+          arguments={
+            "error": "RateLimitError",
+            "message": str(e),
+          },
+        )
+
+      time.sleep(self.RATE_LIMIT_BACKOFF_SEC) # TODO: Manage incase of failure
+      return self.call_llm(tries=tries + 1)
+
+    except Exception as e:
+      return Action(
+        name = "final_answer",
+        arguments = {"Exception": str(e)}
+      )
 
   def forward(self, task = None, tries: int | None = None):
     prompt_variables = {
@@ -85,17 +143,7 @@ class Agent:
       ]
 
     try:
-      response = self.inference_client.chat.completions.create(
-        model= self.model,
-        messages=self.context + self.build_observations(),
-        stream=False
-      )
-
-      
-      raw = response.choices[0].message.content
-      print("RESPONE: ", raw)
-      res = Action.model_validate(json.loads(raw))
-      
+      res = self.call_llm(tries=0)
     except Exception as e:
 
       res = Action(
