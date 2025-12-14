@@ -9,6 +9,7 @@ from .local_python_executor import BASE_BUILTIN_MODULES, BASE_PYTHON_TOOLS, eval
 class PythonInterpreterTool(AsyncTool):
     name = "python_interpreter_tool"
     description = "This is a tool that evaluates python code. It can be used to perform calculations."
+    inputs = {"code": {"type": "string","description": "The python code to run in interpreter.",}}
     parameters = {
         "type": "object",
         "properties": {
