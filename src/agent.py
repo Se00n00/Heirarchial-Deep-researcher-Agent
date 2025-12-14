@@ -1,5 +1,7 @@
 import sys
 import os
+import asyncio
+
 # project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # sys.path.insert(0, project_root)
 
@@ -27,7 +29,7 @@ from langchain_core.messages import HumanMessage
 basic_managed_agent = {}
 
 planner = Agent(
-    model = "openai/gpt-oss-120b",
+    model = "llama-3.1-8b-instant",
     agent = "planning_agent",
     system_instructions_path = PLANNING_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
@@ -39,7 +41,7 @@ planner.add_tools(
 )
 
 browser_use = Agent(
-    model = "openai/gpt-oss-120b",
+    model = "llama-3.1-8b-instant",
     agent = "browser_use_agent",
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
@@ -52,7 +54,7 @@ browser_use.add_tools(
 )
 
 deep_researcher = Agent(
-    model = "openai/gpt-oss-120b",
+    model = "llama-3.1-8b-instant",
     agent = "deep_researcher_agent",
     system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
@@ -61,7 +63,7 @@ deep_researcher = Agent(
 )
 
 deep_researcher.add_tools(
-    tools = {k: tools[k] for k in ["final_answer","archive_searcher_tool"]},
+    tools = {k: tools[k] for k in ["final_answer","find_archived_url"]},
 )
 
 browser_use_description = {
@@ -98,15 +100,25 @@ browser_use.add_managed_agents(
     }
 )
 
+def main():
+    resume = True
+    while resume:
+        message = input("Enter Any Task to do: \t")
+        
+        if message.strip().lower() in ["exit", "quit", "stop"]:
+            print("Goodbye!")
+            break
+        
+        try:
+            res = planner.forward(message)
+            print(f"Output: {res}")
+        except Exception as e:
+            print(f"Error: {e}")
+        
+        # Optional: ask to continue
+        cont = input("Continue? (y/n): ")
+        if cont.lower() != 'y':
+            resume = False
 
 if __name__ == "__main__":
-    
-    resume = True
-
-    while(resume):
-        message = input("Enter Any Task to do:\t")
-        print(f"Output : {planner.forward(message)}")
-
-        resume_ = input("Continue_conersation: ------------------------------------------- [T / F]: \t")
-        if resume_ == 'F':
-            resume = False
+    asyncio.run(main())

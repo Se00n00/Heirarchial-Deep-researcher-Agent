@@ -96,14 +96,14 @@ class Agent:
   
   def build_observations(self):
     if self.observations:
-      obs_text = "\n".join(
-        f"Iteration [{o['iteration']}] | {o['source']} → {o['result']}"
+      obs_text = "\n\n\n".join(
+        f"Iteration [{o['iteration']}] | {o['source']} → \n{o['result']}"
         for o in self.observations
       )
 
       return [{
         "role": "assistant",
-        "content": f"Observations so far:\n{obs_text}"
+        "content": f"Observations so far: \n{obs_text}"
       }]
 
     return []
@@ -133,7 +133,7 @@ class Agent:
     }
 
 
-  def forward(self, task = None):
+  def forward(self, task = None, tries: int | None = None):
 
     prompt_variables = {
       "tools": self.tools or {},
@@ -155,57 +155,49 @@ class Agent:
     try:
       response = self.inference_client.chat.completions.create(
         model= self.model,
-        messages=self.context + self.build_observations()
+        messages=self.context + self.build_observations(),
+        stream=False
       )
 
       
       raw = response.choices[0].message.content
-      print(f"[{self.execution_iteration}][{self.agent}]| RESPONSE: \n {raw}")
+      print("RESPONE: ", raw)
       res = Action.model_validate(json.loads(raw))
-
-      # LOG 1: Agent's Call > More MetaData
-      # yield {"type":"ASSISTANT","content":{"metadata": self.extract_completion_metadata(response) ,"response":{"name":res.name,"arguments": {"answer":str(res)}}}}
       
     except Exception as e:
-      # LOG 2: Exception
-      # yield {"type":"ERROR","content":str(e)}
 
       res = Action(
-        name = "error",
+        name = "final_answer",
         arguments = {"error": str(e)}
       )
+
 
 
     if res.name not in ["final_answer","final_answer_tool"]:
 
       if res.name in [tool['name'] for tool in self.tools.values()]:
-        result = str(self.tools[res.name]['function'](**res.arguments))
+        result = self.tools[res.name]['function'](**res.arguments)
 
 
       elif res.name in self.managed_agents:
-        result = str(self.managed_agents[res.name]['function'](**res.arguments))
+        result = self.managed_agents[res.name]['function'](**res.arguments)
 
       else:
         result = "tool or agent not found"
+        return self.forward()
 
       print(f"[{self.execution_iteration}][{self.agent}]| TOOL/MANGED AGENT :\n{result}")
 
+
       self.update_observation(
         action_name= f"{res.name}- given to act: {str(res.arguments)}",
-        result= result
+        result= str(result)
       )
       self.execution_iteration += 1
 
-      # self.observations.append({
-      #   "role":"assistant",
-      #   "content": f"\nIteration [{self.execution_iteration}] : Observation from {action.name} : {result} \n"
-      # })
       
       return self.forward()
-    
-    # if res.name in ["final_answer","final_answer_tool"] and self.agent == "planning_agent":
-    #   yield {"type": "FINAL_ANSWER", "content": res.arguments.get("answer")}
-
+  
     if self.agent != "planning_agent":
       self.observations = [] # Empty Observations
 

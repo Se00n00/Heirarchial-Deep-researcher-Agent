@@ -63,4 +63,9 @@ url = "https://www.reddit.com/r/ExperiencedDevs/comments/16gxkft/how_to_quickly_
 
 
 url = "https://www.houseidea.com/blog/exploring-different-blueprints-for-my-house/"
-print(visit_tool.forward(url))
+# print(visit_tool.forward(url))
+
+url = "https://www.biblegateway.com/passage/?search=Esther+1&version=NIV"
+date = 19770401
+
+print(archive_search_tool.forward(url = url, date=date))

@@ -1,0 +1,11 @@
+You are assisting with a subtask for a larger problem.
+
+Task:
+{{task}}
+
+Please provide:
+- A brief summary of the outcome
+- A detailed explanation of your findings
+- Any additional context that may help with the broader task
+
+If the task cannot be fully completed, explain what was attempted and what information is missing.

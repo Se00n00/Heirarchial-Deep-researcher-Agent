@@ -163,7 +163,7 @@ ArXiv abstract URLs are automatically converted to PDF URLs.
     },
     "visit_page": {
         "name": "visit_page",
-        "description": "Visit a webpage at a given URL and return its text. Given a url to a YouTube video, this returns the transcript.",
+        "description": "Visit a webpage at a given URL and return its text. for any given url it returns the markdown format of the webpage",
         "parameters": {
         "type": "object",
         "properties": {
