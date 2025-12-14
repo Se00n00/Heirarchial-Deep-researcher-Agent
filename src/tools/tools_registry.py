@@ -47,7 +47,7 @@ def final_answer(answer, citations = None):
 tools = {
     "final_answer":{
         "name":"final_answer",
-        "description":"Your last tool call for summitting your result to manager agent",
+        "description":"Use this submit your task",
         "parameters":{
             "type": "object",
             "properties": {

@@ -14,23 +14,25 @@ project_root = Path(__file__).resolve().parent.parent  # Goes up to HEIRARCHICAL
 sys.path.insert(0, str(project_root))
 
 # Define template paths relative to project root
-DEEP_RESEARCHER_AGENT_TEMPLATE = project_root / "src/core/prompts/deep_researcher_agent.yaml"
-BROWSER_USE_AGENT_TEMPLATE = project_root / "src/core/prompts/browser_use_agent.yaml"
-PLANNING_AGENT_TEMPLATE = project_root / "src/core/prompts/planning_agent.yaml"
+DEEP_RESEARCHER_AGENT_TEMPLATE = project_root / "src/core/prompts/deep_researcher_agent.md"
+BROWSER_USE_AGENT_TEMPLATE = project_root / "src/core/prompts/browser_use_agent.md"
+PLANNING_AGENT_TEMPLATE = project_root / "src/core/prompts/planning_agent.md"
 USER_INSTRUCTION_TEMPLATE = project_root / "src/core/prompts/user_prompt.yaml"
 
 
 
 from src.core.agent import Agent
 from src.tools.tools_registry import tools
+from src.tools.context_manager.manager_llm import Context_Manager
 
-from langchain_core.messages import HumanMessage
+context_manager = Context_Manager(model="llama-3.1-8b-instant")
 
 basic_managed_agent = {}
 
 planner = Agent(
     model = "llama-3.1-8b-instant",
     agent = "planning_agent",
+    context_manager = context_manager.forward,
     system_instructions_path = PLANNING_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
     tools = {},
@@ -43,6 +45,7 @@ planner.add_tools(
 browser_use = Agent(
     model = "llama-3.1-8b-instant",
     agent = "browser_use_agent",
+    context_manager = context_manager.forward,
     system_instructions_path = BROWSER_USE_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
     tools = {},
@@ -56,6 +59,7 @@ browser_use.add_tools(
 deep_researcher = Agent(
     model = "llama-3.1-8b-instant",
     agent = "deep_researcher_agent",
+    context_manager = context_manager.forward,
     system_instructions_path = DEEP_RESEARCHER_AGENT_TEMPLATE,
     user_instructions_path = USER_INSTRUCTION_TEMPLATE,
     tools = {},
@@ -89,16 +93,16 @@ planner.add_managed_agents(
         "deep_researcher_agent": deep_researcher_description
     }
 )
-deep_researcher.add_managed_agents(
-    {
-        "browser_use_agent": browser_use_description
-    }
-)
-browser_use.add_managed_agents(
-    {
-        "deep_researcher_agent": deep_researcher_description
-    }
-)
+# deep_researcher.add_managed_agents(
+#     {
+#         "browser_use_agent": browser_use_description
+#     }
+# )
+# browser_use.add_managed_agents(
+#     {
+#         "deep_researcher_agent": deep_researcher_description
+#     }
+# )
 
 def main():
     resume = True
