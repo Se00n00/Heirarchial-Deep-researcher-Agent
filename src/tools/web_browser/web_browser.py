@@ -256,7 +256,7 @@ class SimpleTextBrowser:
             # if "snippet" in page:
             #     snippet = "\n" + page["snippet"]
 
-            redacted_version = f"{idx}. [{page['title']}]({page['href']})\n\n{_prev_visit(page['href'])}{page['body']}"
+            redacted_version = f"{idx}. [{page['title']}]({page['href']})\n\n{_prev_visit(page['href'])}"
 
             redacted_version = redacted_version.replace("Your browser can't play this video.", "")
             web_snippets.append(redacted_version)

@@ -70,11 +70,6 @@ Delegate using:
 
 # Task Instruction
 Answer the question accurately.
-
-Use:
-- `deep_researcher_tool` for web search
-- `archive_searcher_tool` for archived pages
-
 Remove unnecessary observations.
 
 Return the result using `final_answer`.
@@ -82,3 +77,5 @@ Return the result using `final_answer`.
 ---
 
 Now Begin !
+
+---

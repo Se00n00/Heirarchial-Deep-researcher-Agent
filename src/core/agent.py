@@ -1,5 +1,6 @@
 from .state import Action
 from .utils import render_yaml_template
+from .context_manager import Context_Manager
 
 from groq import Groq
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
@@ -24,13 +25,13 @@ BASE_URL = os.environ['GROQ_BASE_URL']
 
 
 class Agent:
-  def __init__(self, model:str, agent:str, context_manager, system_instructions_path:str, user_instructions_path:str, tools, managed_agents):
+  def __init__(self, model:str, agent:str, system_instructions_path:str, user_instructions_path:str, tools, managed_agents):
     self.inference_client = Groq(
       api_key=os.environ["GROQ_API_KEY"]
     )
     self.model= model
     self.agent = agent
-    self.context_manager = context_manager
+    self.context_manager = Context_Manager(model=model)
     self.context = None
     self.observations = []
     self.system_instructions_template_path = system_instructions_path
@@ -46,23 +47,23 @@ class Agent:
   def add_tools(self, tools):
     self.tools.update(tools)
   
-  def update_observation(self, action_name, result):
+  def update_observation(self, action_name, result, type = None):
     obs = {
       "iteration": self.execution_iteration,
       "source": action_name,
       "result": result,
+      "type": type
     }
     self.observations.append(obs)
 
   def build_observations(self):
-    minimized = self.context_manager.forward(
-      task=self.context[-1]["content"],
-      observations=self.observations
-    )
-
+    if self.observations == []:
+      return []
+    
+    content = "\n".join(f"[{o['iteration']}][{o['source']}] : {o['result']}" for o in self.observations)
     return [{
       "role": "user",
-      "content": f"Relevant observations:\n\n{minimized}"
+      "content": f"Relevant observations:\n\n{content}"
     }]
 
   def forward(self, task = None, tries: int | None = None):
@@ -80,7 +81,7 @@ class Agent:
 
       self.context = [
         {"role": "system","content":system},
-        {"role": "user", "content": f"\You are assisting with a subtask for a larger problem. {task} \n"}
+        {"role": "user", "content": f"\nTask : {task} \n"}
       ]
 
     try:
@@ -102,7 +103,7 @@ class Agent:
         arguments = {"error": str(e)}
       )
 
-      print("Context Content: \n\n\n", self.context + self.build_observations(), "\n\n\n")
+      print("[ERROR]:  \n",str(e))
 
 
 
@@ -110,11 +111,20 @@ class Agent:
       try:
         if res.name in [tool['name'] for tool in self.tools.values()]:
           result = self.tools[res.name]['function'](**res.arguments)
-          print(f"[TOOL :\n{result}")
+          # result = self.context_manager.forward(
+          #   task = self.context[-1]["content"],
+          #   observations = tool_output,
+          #   tool_used = res.name
+          # )
+          result_type = "tool"
+
+          print(f"[TOOL] :\n{result}")
 
 
         elif res.name in self.managed_agents:
           result = self.managed_agents[res.name]['function'](**res.arguments)
+          result_type = "agent"
+
           print(f"[MANGED AGENT :\n{result}")
 
         else:
@@ -125,8 +135,9 @@ class Agent:
 
 
       self.update_observation(
-        action_name= f"{res.name}- given to act: {str(res.arguments)}",
-        result= str(result)
+        action_name = f"[{res.name}]",
+        type = result_type,
+        result = str(result)
       )
       self.execution_iteration += 1
       return self.forward()

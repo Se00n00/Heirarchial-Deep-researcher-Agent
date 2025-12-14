@@ -67,8 +67,8 @@ Now Begin!
 
 You must answer one question correctly. The answer exists, and you have access to all required tools and team members. Failure or refusal is not acceptable.
 
-Use `deep_analyzer_agent` for attached files, URLs, calculations, analysis, or games. If files are involved, include and share their **absolute paths**.
-
 When delegating, pass the **ORIGINAL task text** as the `task` argument without modification.
 
 For web tasks, start with `browser_use_agent`; if needed, follow with `deep_researcher_agent`.
+
+---
