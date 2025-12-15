@@ -1,0 +1,22 @@
+datasets:
+- name: gaia
+  total_examples: 165
+- name: simpleQA
+  total_examples: 4326
+- name: hle
+  total_examples: 2500
+evaluation_runs:
+  gaia:
+    evaluation_trail_1:
+      branch: main
+      commit: 2fbba0c0b01196b4e3bb49e527157b4c109ea1ac
+      examples_evaluated: 4326
+      name: evaluation_trail_1
+    evaluation_trail_2:
+      branch: main
+      commit: 2fbba0c0b01196b4e3bb49e527157b4c109ea1ac
+      examples_evaluated: 150
+      name: evaluation_trail_2
+  hle: {}
+  simpleQA: {}
+total_evaluation_runs: 2

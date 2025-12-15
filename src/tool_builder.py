@@ -27,7 +27,6 @@ BROWSER_CONFIG = {
         "headers": {"User-Agent": user_agent},
         "timeout": 300,
     },
-    "serpapi_key": os.environ["SERPAPI_API_KEY"],
 }
 
 def tool_builder():
