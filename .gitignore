@@ -3,4 +3,6 @@
 venv/
 __pycache__/
 __marimo__
-*.pyc
+*.pyc 
+
+.vscode/
