@@ -21,6 +21,7 @@ USER_INSTRUCTION_TEMPLATE = project_root / "src/core/prompts/user_prompt.yaml"
 from src.core.agent import Agent
 from src.tool_builder import tool_builder
 
+# llama-3.1-8b-instant & qwen/qwen3-32b
 def create_agent(model = "llama-3.1-8b-instant"):
     basic_managed_agent = {}
     tools = tool_builder()

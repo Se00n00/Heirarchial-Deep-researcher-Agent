@@ -62,14 +62,30 @@ class Agent:
     self.observations.append(obs)
 
   def build_observations(self):
-    if self.observations == []:
-      return []
+    # if self.observations == []:
+    #   return []
     
-    content = "\n".join(f"[{o['iteration']}][{o['source']}] : {o['result']}" for o in self.observations)
-    return [{
-      "role": "user",
-      "content": f"Relevant observations:\n\n{content}"
-    }]
+    # content = "\n".join(f"[{o['iteration']}][{o['source']}] : {o['result']}" for o in self.observations)
+    # return [{
+    #   "role": "user",
+    #   "content": f"Relevant observations:\n\n{content}"
+    # }]
+    
+    messages = []
+
+    for obs in self.observations:
+      messages.append({
+        "role": "user",
+        "content": (
+          f"Observation [{obs['iteration']}]\n"
+          f"Source: {obs['source']}\n"
+          f"Type: {obs['type']}\n"
+          f"Result:\n{obs['result']}"
+        )
+      })
+
+    return messages
+
   
   def call_llm(self, tries = 0):
     try:
@@ -81,27 +97,52 @@ class Agent:
       raw = response.choices[0].message.content
       return Action.model_validate(json.loads(raw))
     
-    except (ValidationError, groq.BadRequestError) as e:
+    except (json.JSONDecodeError, groq.BadRequestError) as e:
       if tries >= self.MAX_RETRIES:
         return Action(
           name="final_answer",
           arguments={
-            "error": type(e).__name__[0],
+            "error": type(e).__name__,
             "message": str(e),
           },
         )
 
-        
-      
-      # TODO : Manage Context
-      if isinstance(e, ValidationError):
+      if isinstance(e, json.JSONDecodeError):
         # assuming Validation Error had occured due to context pollution
-        pass
+        # Just remove the last observation and gives agent another chance to fix the error
+        
+        # Though this error may arise from bad prompt or bad set model
+        if self.observations == []:
+          return Action(
+            name="final_answer",
+            arguments={
+              "error": type(e).__name__,
+              "message": str(e),
+            },
+          )
+        
+        if tries > 1:
+          if self.observations:
+            self.observations.pop()
+        
+        else:
+          self.observations[-1]["result"] = self.context_manager.summarize_tool_output(
+            task=self.context[1]["content"],
+            tool_output=self.observations[-1]["result"],
+            tool_used = self.observations[-1]["source"]
+          )
+
 
       if isinstance(e, groq.BadRequestError):
         # Optional: trim or reset context here
         # self.context = self.context[-N:]
-        pass
+        
+        index_list = self.context_manager.minimize_context(
+          task=self.context[1]["content"],
+          observations=self.observations
+        )
+
+        self.observations = [obj for idx, obj in enumerate(self.observations) if idx in index_list]
 
       return self.call_llm(tries=tries + 1)
     
@@ -159,21 +200,20 @@ class Agent:
       try:
         if res.name in [tool['name'] for tool in self.tools.values()]:
           result = self.tools[res.name]['function'](**res.arguments)
-          # result = self.context_manager.forward(
-          #   task = self.context[-1]["content"],
-          #   observations = tool_output,
-          #   tool_used = res.name
-          # )
-          result_type = "tool"
-
           print(f"[TOOL] :\n{result}")
 
+          # Reject tool's ouput if it is not fit for result as it may pollute the context
+          if self.context_manager.verify_tool_output(
+            task=self.context[1]["content"], tool_output=result, tries=0) == False:
+            return self.forward()
+          
+          result_type = "tool"
 
         elif res.name in self.managed_agents:
           result = self.managed_agents[res.name]['function'](**res.arguments)
           result_type = "agent"
 
-          print(f"[MANGED AGENT :\n{result}")
+          print(f"[MANGED AGENT]:\n{result}")
 
         else:
           raise Exception("tool or agent not found")
