@@ -1,5 +1,10 @@
 from datasets import load_dataset
 import subprocess
+import argparse
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def _git(cmd: str) -> str:
     return subprocess.check_output(cmd.split()).decode().strip()
@@ -24,9 +29,9 @@ def build_dataset(dataset_path:str, subset:str | None = None, split:str | None =
         :type split: str | None
     """
     if subset != None:
-        data = load_dataset(dataset_path, subset)
+        data = load_dataset(dataset_path, subset, token=os.environ["HF_TOKEN"])
     else:
-        data = load_dataset(dataset_path)
+        data = load_dataset(dataset_path, token=os.environ["HF_TOKEN"])
 
     if split != None:
         data = data[split]
@@ -41,3 +46,13 @@ def build_dataset(dataset_path:str, subset:str | None = None, split:str | None =
         dataset_examples.append(data[row])
 
     return metadata, dataset_examples
+
+def ArgsParser():
+    parser = argparse.ArgumentParser(
+        description="Pass Name of Evaluation and sleep time [Optional]",
+    )
+    parser.add_argument('evaluation_name', type = str)
+    parser.add_argument('-t', '--time', type=float)
+
+    return parser
+

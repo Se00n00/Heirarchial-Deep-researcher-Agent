@@ -110,6 +110,31 @@ def create_agent(model = "llama-3.1-8b-instant"):
 
     return planner
 
+def agent_inference(message: str):
+    Outputs = []
+    try:
+        agent = create_agent()
+        for log in agent.forward(message):
+            if isinstance(log, dict):
+                Outputs.append(log)
+            
+            print(f"\n---------------------------------------------------\n{log}")
+    except Exception as e:
+        Outputs.append({
+            "type": "ERROR",
+            "content": str(e)
+        })
+    
+    final_answer = None
+    for item in Outputs:
+        if item.get("type") == "FINAL_ANSWER":
+            final_answer = item["content"]
+            break
+    if final_answer is None:
+        final_answer = ""
+    
+    return final_answer, Outputs
+
 def main():
     resume = True
     while resume:
@@ -120,9 +145,7 @@ def main():
             break
         
         try:
-            agent = create_agent()
-            res = agent.forward(message)
-            print(f"Output: {res}")
+            final_answer, Outputs = agent_inference(message)
         except Exception as e:
             print(f"Error: {e}")
         
@@ -132,4 +155,4 @@ def main():
             resume = False
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

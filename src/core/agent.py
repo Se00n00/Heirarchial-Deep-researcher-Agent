@@ -1,5 +1,5 @@
 from .state import Action
-from .utils import render_yaml_template
+from .utils import render_yaml_template, extract_completion_metadata
 from .context_manager import Context_Manager
 
 from groq import Groq
@@ -62,15 +62,6 @@ class Agent:
     self.observations.append(obs)
 
   def build_observations(self):
-    # if self.observations == []:
-    #   return []
-    
-    # content = "\n".join(f"[{o['iteration']}][{o['source']}] : {o['result']}" for o in self.observations)
-    # return [{
-    #   "role": "user",
-    #   "content": f"Relevant observations:\n\n{content}"
-    # }]
-    
     messages = []
 
     for obs in self.observations:
@@ -86,7 +77,6 @@ class Agent:
 
     return messages
 
-  
   def call_llm(self, tries = 0):
     try:
       response = self.inference_client.chat.completions.create(
@@ -95,7 +85,14 @@ class Agent:
         stream=False
       )
       raw = response.choices[0].message.content
-      return Action.model_validate(json.loads(raw))
+      action = Action.model_validate(json.loads(raw))
+      
+      # --------------------
+      # LOG 1: Model Output
+      # --------------------
+      yield {"type":"ASSISTANT","content":{"metadata": extract_completion_metadata(response) ,"response":{"name":action.name,"arguments": action.arguments}}}
+     
+      return action
     
     except (json.JSONDecodeError, groq.BadRequestError) as e:
       if tries >= self.MAX_RETRIES:
@@ -144,7 +141,8 @@ class Agent:
 
         self.observations = [obj for idx, obj in enumerate(self.observations) if idx in index_list]
 
-      return self.call_llm(tries=tries + 1)
+      call = yield from self.call_llm(tries=tries + 1)
+      return call
     
     except groq.RateLimitError as e:
       if tries >= self.MAX_RETRIES:
@@ -157,13 +155,25 @@ class Agent:
         )
 
       time.sleep(self.RATE_LIMIT_BACKOFF_SEC) # TODO: Manage incase of failure
-      return self.call_llm(tries=tries + 1)
+      call = yield from self.call_llm(tries=tries + 1)
+      return call
 
     except Exception as e:
       return Action(
         name = "final_answer",
         arguments = {"Exception": str(e)}
       )
+
+  def _run_generator(self, gen):
+    result = None
+    try:
+      while True:
+        event = next(gen)
+        yield event
+    except StopIteration as e:
+      result = e.value
+    return result
+
 
   def forward(self, task = None, tries: int | None = None):
     prompt_variables = {
@@ -183,43 +193,50 @@ class Agent:
         {"role": "user", "content": f"\nTask : {task} \n"}
       ]
 
-    try:
-      res = self.call_llm(tries=0)
-    except Exception as e:
+    # try:
+    #   res = self.call_llm(tries=0)
+    # except Exception as e:
 
-      res = Action(
-        name = "error",
-        arguments = {"error": str(e)}
-      )
-
-      print("[ERROR]:  \n",str(e))
-
-
+    #   res = Action(
+    #     name = "final_answer",
+    #     arguments = {"error": str(e)}
+    #   )
+    res = yield from self._run_generator(self.call_llm())
 
     if res.name not in ["final_answer","final_answer_tool"]:
       try:
         if res.name in [tool['name'] for tool in self.tools.values()]:
           result = self.tools[res.name]['function'](**res.arguments)
-          print(f"[TOOL] :\n{result}")
 
           # Reject tool's ouput if it is not fit for result as it may pollute the context
           if self.context_manager.verify_tool_output(
             task=self.context[1]["content"], tool_output=result, tries=0) == False:
             return self.forward()
           
+          
+          # ------------------------
+          # LOG 2: Valid Tool Output
+          # ------------------------
+          yield {"type":"TRACE","content": str(result)}
           result_type = "tool"
+          
 
         elif res.name in self.managed_agents:
-          result = self.managed_agents[res.name]['function'](**res.arguments)
-          result_type = "agent"
+          result = yield from self.managed_agents[res.name]['function'](**res.arguments)
+          
+          # --------------------
+          # LOG 3: Agent Output
+          # --------------------
+          yield {"type":"TRACE","content": str(result)}
 
-          print(f"[MANGED AGENT]:\n{result}")
+          result_type = "agent"
 
         else:
           raise Exception("tool or agent not found")
         
       except Exception as e:
-        return self.forward()
+        res = yield from self.forward()
+        return res
 
 
       self.update_observation(
@@ -228,10 +245,17 @@ class Agent:
         result = str(result)
       )
       self.execution_iteration += 1
-      return self.forward()
+      res = yield from self.forward()
+      return res
     
   
     if self.agent != "planning_agent":
       self.observations = [] # Empty Observations
+    
+    # ---------------------
+    # LOG 4: Final Output
+    # ----------------------
+    if res.name in ["final_answer","final_answer_tool"] and self.agent == "planning_agent":
+      yield {"type": "FINAL_ANSWER", "content": res.arguments}
 
     return res

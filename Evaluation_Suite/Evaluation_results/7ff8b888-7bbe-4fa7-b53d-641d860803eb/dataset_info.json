@@ -1,0 +1,71 @@
+{
+  "citation": "",
+  "description": "",
+  "features": {
+    "task_id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Question": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Level": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Final answer": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "file_name": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "file_path": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "Annotator Metadata": {
+      "How long did this take?": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "Number of steps": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "Number of tools": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "Steps": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "Tools": {
+        "dtype": "string",
+        "_type": "Value"
+      }
+    },
+    "answer_from_agent": {
+      "answer": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "citations": {
+        "feature": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "_type": "List"
+      }
+    },
+    "Output_observation": {
+      "dtype": "string",
+      "_type": "Value"
+    }
+  },
+  "homepage": "",
+  "license": ""
+}

@@ -1,8 +1,8 @@
-from tools.python_interpreter.python_intrepeter import PythonInterpreterTool
-from tools.archive_searcher.archive_searcher import ArchiveSearcherTool
-from tools.web_browser.text_inspector import TextInspectorTool
-from tools.final_answer import FinalAnswerTool
-from tools.web_browser.web_browser import (
+from src.tools.python_interpreter.python_intrepeter import PythonInterpreterTool
+from src.tools.archive_searcher.archive_searcher import ArchiveSearcherTool
+from src.tools.web_browser.text_inspector import TextInspectorTool
+from src.tools.final_answer import FinalAnswerTool
+from src.tools.web_browser.web_browser import (
     SearchInformationTool,
     DownloadTool,
     ArchiveSearchTool,

@@ -60,7 +60,7 @@ VERIFICATION_USER_PROMPT = """
 class Context_Manager:
   def __init__(self, model):
     self.client = Groq(
-      api_key=os.getenv("GROQ_API_KEY_2")
+      api_key=os.environ["GROQ_API_KEY_2"]
     )
     self.model = model
     self.MAX_RETIES = 3

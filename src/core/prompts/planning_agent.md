@@ -67,6 +67,8 @@ Now Begin!
 
 You must answer one question correctly. The answer exists, and you have access to all required tools and team members. Failure or refusal is not acceptable.
 
+Don't try to answer question with known facts, use given agents
+
 When delegating, pass the **ORIGINAL task text** as the `task` argument without modification.
 
 For web tasks, start with `browser_use_agent`; if needed, follow with `deep_researcher_agent`.

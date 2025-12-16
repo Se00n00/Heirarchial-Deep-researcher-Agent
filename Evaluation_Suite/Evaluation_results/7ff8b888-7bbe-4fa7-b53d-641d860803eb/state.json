@@ -1,0 +1,23 @@
+{
+  "_data_files": [
+    {
+      "filename": "data-00000-of-00001.arrow"
+    }
+  ],
+  "_fingerprint": "f3005b99caf1f4dd",
+  "_format_columns": [
+    "task_id",
+    "Question",
+    "Level",
+    "Final answer",
+    "file_name",
+    "file_path",
+    "Annotator Metadata",
+    "answer_from_agent",
+    "Output_observation"
+  ],
+  "_format_kwargs": {},
+  "_format_type": null,
+  "_output_all_columns": false,
+  "_split": null
+}
