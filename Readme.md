@@ -32,6 +32,53 @@
 * [Project Status](#status)
 
 ---
+## Project Structure
+
+```text
+.
+├── src/                         # Core agent implementation
+│   ├── agent.py                 # Entry point for the hierarchical research agent
+│   ├── core/                    # Agent core logic
+│   │   ├── agent.py             # Planner / executor logic
+│   │   ├── context_manager.py   # Context and token budget management
+│   │   ├── state.py             # Agent state representation
+│   │   ├── utils.py             # Shared utilities
+│   │   └── prompts/             # Prompt templates (YAML + Markdown)
+│   ├── tools/                   # Tooling layer used by the agent
+│   │   ├── registry.py          # Tool registration logic
+│   │   ├── registry.yaml        # Tool configuration
+│   │   ├── tools_registry.py    # Tool resolution and dispatch
+│   │   ├── deep_researcher/     # Deep research toolchain
+│   │   ├── archive_searcher/    # Academic / archive search tools
+│   │   ├── web_browser/         # Web interaction and parsing tools
+│   │   ├── python_interpreter/  # Local Python execution tool
+│   │   └── final_answer.py      # Final answer synthesis
+│   └── tool_builder.py          # Tool construction utilities
+│
+├── Evaluation_Suite/             # Evaluation and benchmarking framework
+│   ├── evaluation_gaia.py        # GAIA benchmark
+│   ├── evaluation_simpleQA.py    # SimpleQA benchmark
+│   ├── evaluation_hle.py         # HLE benchmark
+│   ├── evaluation_utils.py       # Shared evaluation utilities
+│   ├── evaluation_config.yaml   # Evaluation configuration
+│   └── Evaluation_results/      # Stored evaluation outputs
+│
+├── notebooks/                    # Analysis and benchmarking notebooks
+│   └── Benchmarks.ipynb
+│
+├── docs/                         # Project documentation
+│   └── Dataset.md
+│
+├── artifacts/                    # Visual assets (logos, diagrams)
+│
+├── downloads/                    # Downloaded external artifacts (examples)
+│
+├── app.py                        # Optional application / demo entry point
+├── Dockerfile                    # Containerized execution environment
+├── requirements.txt              # Python dependencies
+├── README.md                     # Project documentation
+└── LICENSE                       # License information
+```
 
 ## Requirements
 
@@ -114,7 +161,29 @@ python Evaluation_Suite/evaluation_<dataset>.py <evaluation_name> --time [sleep_
 ---
 ## Status
 
-- This project is fully functional. Core agent capabilities are stable and usable.
-- Evaluation on benchmarks are currently in progress.
+This project is **fully functional**. Core agent capabilities are stable and usable.  
+Evaluation benchmarks are **currently in progress**.
 
----
+### Implementation Status
+
+- [x] Hierarchical multi-agent architecture
+- [x] Tool registry and dynamic tool invocation
+- [x] Web browsing and document analysis tools
+- [x] Local Python execution tool
+- [x] Deterministic agent execution (seeded runs)
+- [x] Reproducible environment setup (no cache, isolated venv)
+- [ ] code agent
+
+### Evaluation Status
+
+- [ ] GAIA benchmark evaluation
+- [ ] SimpleQA benchmark evaluation
+- [ ] HLE benchmark evaluation
+
+### Documentation
+
+- [ ] Project structure documentation
+- [x] Dataset documentation
+- [x] Example run notebooks
+- [ ] Architecture diagram (final)
+- [ ] Comprehensive evaluation report
