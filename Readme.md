@@ -39,8 +39,8 @@
 ├── src/                         # Core agent implementation
 │   ├── agent.py                 # Entry point for the hierarchical research agent
 │   ├── core/                    # Agent core logic
-│   │   ├── agent.py             # Planner / executor logic
-│   │   ├── context_manager.py   # Context and token budget management
+│   │   ├── agent.py             # Base Agent logic
+│   │   ├── context_manager.py   # Context and token budget management: validate tool output, minimize context, summerize particular agent / tool output
 │   │   ├── state.py             # Agent state representation
 │   │   ├── utils.py             # Shared utilities
 │   │   └── prompts/             # Prompt templates (YAML + Markdown)
@@ -52,8 +52,8 @@
 │   │   ├── archive_searcher/    # Academic / archive search tools
 │   │   ├── web_browser/         # Web interaction and parsing tools
 │   │   ├── python_interpreter/  # Local Python execution tool
-│   │   └── final_answer.py      # Final answer synthesis
-│   └── tool_builder.py          # Tool construction utilities
+│   │   └── final_answer.py      # Final answer tool
+│   └── tool_builder.py          # Tools registry construction
 │
 ├── Evaluation_Suite/             # Evaluation and benchmarking framework
 │   ├── evaluation_gaia.py        # GAIA benchmark
@@ -64,20 +64,12 @@
 │   └── Evaluation_results/      # Stored evaluation outputs
 │
 ├── notebooks/                    # Analysis and benchmarking notebooks
-│   └── Benchmarks.ipynb
-│
 ├── docs/                         # Project documentation
-│   └── Dataset.md
-│
-├── artifacts/                    # Visual assets (logos, diagrams)
-│
-├── downloads/                    # Downloaded external artifacts (examples)
-│
-├── app.py                        # Optional application / demo entry point
+├── app.py                        # Frontend demo backend
 ├── Dockerfile                    # Containerized execution environment
 ├── requirements.txt              # Python dependencies
 ├── README.md                     # Project documentation
-└── LICENSE                       # License information
+└── LICENSE                       # License
 ```
 
 ## Requirements
