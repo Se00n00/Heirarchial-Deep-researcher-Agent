@@ -6,7 +6,6 @@ from groq import Groq
 import groq
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_agent
 from dotenv import load_dotenv
 
 import os

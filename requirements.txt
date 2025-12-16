@@ -42,3 +42,5 @@ python-pptx
 torch
 xlrd
 SpeechRecognition
+smolagents
+ddgs
