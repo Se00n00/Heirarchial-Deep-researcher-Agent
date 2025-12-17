@@ -3,6 +3,7 @@ import yaml
 import time
 import traceback
 import uuid
+import shutil
 import os
 from pathlib import Path 
 from datasets import Dataset, load_from_disk, concatenate_datasets
@@ -43,16 +44,36 @@ def agent_inference(message: str):
     
     return final_answer, Outputs
 
-def write_to_dataset(new_list, dataset_id):
-    available_dataset = os.listdir(RESULT_PATH)
-    if dataset_id not in available_dataset:
-        ds = Dataset.from_list([])
-    else:
-        ds = load_from_disk(f"{RESULT_PATH}/{dataset_id}")
+# def write_to_dataset(new_list, dataset_id):
+#     available_dataset = os.listdir(RESULT_PATH)
+#     if dataset_id not in available_dataset:
+#         ds = Dataset.from_list([])
+#     else:
+#         ds = load_from_disk(f"{RESULT_PATH}/{dataset_id}")
     
+#     new_example = Dataset.from_list(new_list)
+#     combined_dataset = concatenate_datasets([ds, new_example])
+#     combined_dataset.save_to_disk(f"{RESULT_PATH}/{dataset_id}")
+
+def write_to_dataset(new_list, dataset_id):
+    final_path = f"{RESULT_PATH}/{dataset_id}"
+    tmp_path = f"{final_path}_tmp"
+
+    if os.path.exists(final_path):
+        ds = load_from_disk(final_path)
+    else:
+        ds = Dataset.from_list([])
+
     new_example = Dataset.from_list(new_list)
     combined_dataset = concatenate_datasets([ds, new_example])
-    combined_dataset.save_to_disk(f"{RESULT_PATH}/{dataset_id}")
+
+    # Save to temp path
+    combined_dataset.save_to_disk(tmp_path)
+
+    # Replace old dataset
+    if os.path.exists(final_path):
+        shutil.rmtree(final_path)
+    os.rename(tmp_path, final_path)
 
 def evaluate_simpleQA(evaluation_name:str, sleep_time:float | int = 0):
     
@@ -104,7 +125,7 @@ def evaluate_simpleQA(evaluation_name:str, sleep_time:float | int = 0):
                 #               GET ANSWER FROM AGENT             #
                 # ----------------------------------------------- #
                 final, output = agent_inference(example['problem'])
-                example['answer_from_agent'] , example['Output_observation'] = final, str(output)
+                example['answer_from_agent'] , example['Output_observation'] = str(final), str(output)
                 new_list = [example]
                 write_to_dataset(new_list, eval_id)
                 print(f"----------------- EVALUATED [{examples_evaluated}] ---------------------")

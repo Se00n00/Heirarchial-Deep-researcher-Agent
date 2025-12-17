@@ -1,4 +1,4 @@
-from src.agent import planner
+from src.agent import create_agent
 
 from fastapi import FastAPI, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
@@ -37,6 +37,7 @@ def home():
 class RequestModel(BaseModel):
     query: str
 
+
 @app.post("/chat")
 async def chat(request: RequestModel):
     query = request.query
@@ -44,8 +45,8 @@ async def chat(request: RequestModel):
     async def event_generator():
         try:
             # ← This is a SYNC generator → we must use normal 'for', not 'async for'
-            for log in planner.forward(query):
-                print(log)
+            agent = create_agent()
+            for log in agent.forward(query):
 
                 # Decide what format you want to send
                 if isinstance(log, dict):
@@ -59,8 +60,6 @@ async def chat(request: RequestModel):
                 # Very important: give the event loop a breath
                 await asyncio.sleep(0.01)
 
-            # Optional: signal end of stream
-            yield json.dumps({"type": "DONE"}) + "\n"
 
         except Exception as e:
             import traceback
