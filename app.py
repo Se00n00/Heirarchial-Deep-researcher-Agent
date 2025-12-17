@@ -44,12 +44,17 @@ async def chat(request: RequestModel):
 
     async def event_generator():
         try:
-            # ← This is a SYNC generator → we must use normal 'for', not 'async for'
+            # TODO: Handle Final_answer
             agent = create_agent()
             for log in agent.forward(query):
 
-                # Decide what format you want to send
                 if isinstance(log, dict):
+                    if log['type'] == 'FINAL_ANSWER':
+                        if log['content'].get('answer') == None:
+                            log['content'] = str(log['content'])
+                        else:
+                            log['content'] = log['content'].get('answer')
+        
                     payload = json.dumps(log) + "\n"
                 else:
                     payload = json.dumps({"content": str(log)}) + "\n"
@@ -65,9 +70,7 @@ async def chat(request: RequestModel):
             import traceback
             error_payload = {
                 "type": "ERROR",
-                "heading": "Exception",
-                "content": str(e),
-                "traceback": traceback.format_exc()
+                "content": str(e)
             }
             yield json.dumps(error_payload) + "\n"
 

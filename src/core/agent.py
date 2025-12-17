@@ -89,7 +89,7 @@ class Agent:
       # --------------------
       # LOG 1: Model Output
       # --------------------
-      yield {"type":"ASSISTANT","content":{"metadata": extract_completion_metadata(response) ,"response":{"name":action.name,"arguments": action.arguments}}}
+      yield {"type":"ASSISTANT","content":{"metadata": extract_completion_metadata(response) ,"response":{"name":action.name,"arguments": str(action.arguments)}}}
      
       return action
     
@@ -112,8 +112,8 @@ class Agent:
           return Action(
             name="final_answer",
             arguments={
-              "error": type(e).__name__,
-              "message": str(e),
+              "type": type(e).__name__,
+              "error": str(e),
             },
           )
         
@@ -216,7 +216,7 @@ class Agent:
           # ------------------------
           # LOG 2: Valid Tool Output
           # ------------------------
-          yield {"type":"TRACE","content": str(result)}
+          yield {"type":"TRACE","content": {"output":str(result), "name":res.name}}
           result_type = "tool"
           
 
@@ -226,7 +226,7 @@ class Agent:
           # --------------------
           # LOG 3: Agent Output
           # --------------------
-          yield {"type":"TRACE","content": str(result)}
+          yield {"type":"TRACE","content": {"output":str(result), "name":res.name}}
 
           result_type = "agent"
 
