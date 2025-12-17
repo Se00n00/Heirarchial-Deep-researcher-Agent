@@ -278,6 +278,7 @@ This mutli-agent is **fully reproducible** and can be run in an isolated virtual
     git clone https://github.com/Se00n00/Chat/tree/main
     git checkout Hydra
     npm install
+    export NG_APP_BACKEND="http://127.0.0.1:10000/chat"  ! Important
     ng serve
 ```
 
