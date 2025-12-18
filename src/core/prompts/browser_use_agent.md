@@ -83,6 +83,7 @@ Begin.
 
 Answer the following question as accurately as possible.
 
+You must answer task correctly. The answer exists, and you have access to all required tools and team members. Failure or refusal is not acceptable.
 ---
 
 ## Tool Guidance

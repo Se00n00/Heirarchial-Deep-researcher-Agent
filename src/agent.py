@@ -55,8 +55,6 @@ def create_agent(model = "llama-3.1-8b-instant"):
             "visit_page",
             "page_up",
             "page_down",
-            "find_on_page_ctrl_f",
-            "find_next",
             "find_archived_url"
             ]},
     )

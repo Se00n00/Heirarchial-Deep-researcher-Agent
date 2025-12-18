@@ -145,15 +145,16 @@ class Agent:
     
     except groq.RateLimitError as e:
       if tries >= self.MAX_RETRIES:
-        return Action(
-          name="final_answer",
-          arguments={
-            "error": "RateLimitError",
-            "message": str(e),
-          },
+        index_list = self.context_manager.minimize_context(
+          task=self.context[1]["content"],
+          observations=self.observations
         )
 
-      time.sleep(self.RATE_LIMIT_BACKOFF_SEC) # TODO: Manage incase of failure
+        self.observations = [obj for idx, obj in enumerate(self.observations) if idx in index_list]
+        
+      else:
+
+        time.sleep(self.RATE_LIMIT_BACKOFF_SEC) # TODO: Manage incase of failure
       call = yield from self.call_llm(tries=tries + 1)
       return call
 
@@ -210,7 +211,8 @@ class Agent:
           # Reject tool's ouput if it is not fit for result as it may pollute the context
           if self.context_manager.verify_tool_output(
             task=self.context[1]["content"], tool_output=result, tries=0) == False:
-            return self.forward()
+            
+            result = "Invalid or irrelevant tool output rejected by verifier"
           
           
           # ------------------------
@@ -221,14 +223,19 @@ class Agent:
           
 
         elif res.name in self.managed_agents:
-          result = yield from self.managed_agents[res.name]['function'](**res.arguments)
-          
-          # --------------------
-          # LOG 3: Agent Output
-          # --------------------
-          yield {"type":"TRACE","content": {"output":str(result), "name":res.name}}
+          agent_fn = self.managed_agents[res.name]['function']
+
+          # Normalize generator execution
+          gen = agent_fn(**res.arguments)
+          result = yield from self._run_generator(gen)
+
+          yield {
+            "type": "TRACE",
+            "content": {"output": str(result), "name": res.name}
+          }
 
           result_type = "agent"
+
 
         else:
           raise Exception("tool or agent not found")
