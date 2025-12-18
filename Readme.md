@@ -16,6 +16,12 @@
 
 <div align="center">
 
+  <a href="https://www.youtube.com/watch?v=IuKkCtJ6tYI">
+    <img src="artifacts/Hierarchical_Deep_Researcher_Agent_Demo_1080P-ezgif.com-video-to-gif-converter.gif">
+
+    (click Video to view Demo)
+  </a>
+  
 # HyDRA: Hierarchical Deep Researcher Agent
 </div>
 
